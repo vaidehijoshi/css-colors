@@ -3,4 +3,7 @@ name = "css-colors"
 version = "0.0.1"
 authors = ["vaidehijoshi <vaidehi.sj@gmail.com>"]
 
+description = "A CSS color convertor"
+license = "ISC"
+
 [dependencies]
