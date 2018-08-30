@@ -1,6 +1,9 @@
 use std::fmt;
 
 #[derive(Debug, Copy, Clone, PartialEq)]
+/// A struct to represent how much red, green, and blue should be added to create a color.
+/// For more, see the [CSS Color Spec](https://www.w3.org/TR/2018/REC-css-color-3-20180619/#rgb-color).
+///
 pub struct RGB {
     // red between 0-255
     pub r: u8,
