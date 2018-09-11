@@ -76,4 +76,12 @@ mod rgb_tests {
 
         assert_eq!("rgb(5, 10, 255)".to_owned(), format!("{}", color));
     }
+
+    #[test]
+    fn can_be_stringified() {
+        let color = RGB { r: 5, g: 10, b: 255 };
+        let color_string = String::from("rgb(5, 10, 255)");
+
+        assert_eq!(color_string, color.to_string());
+    }
 }
