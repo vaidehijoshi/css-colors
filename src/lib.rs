@@ -69,4 +69,11 @@ mod rgb_tests {
 
         assert_eq!(printed, "rgb(5, 10, 255)");
     }
+
+    #[test]
+    fn can_be_displayed() {
+        let color = RGB { r: 5, g: 10, b: 255 };
+
+        assert_eq!("rgb(5, 10, 255)".to_owned(), format!("{}", color));
+    }
 }
