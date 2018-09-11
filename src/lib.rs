@@ -15,6 +15,16 @@ pub struct RGB {
     pub b: u8,
 }
 
+
+/// Converts a set of RGB values into valid CSS.
+///
+/// # Examples
+///
+/// ```
+/// let salmon = css_colors::RGB { r: 250, g: 128, b: 114 };
+///
+/// assert_eq!("rgb(250, 128, 114)", salmon.to_css());
+/// ```
 impl RGB {
     pub fn to_css(&self) -> String {
         format!("rgb({red}, {green}, {blue})", red=self.r, green=self.g, blue=self.b)
