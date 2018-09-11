@@ -1,9 +1,9 @@
 [package]
 name = "css-colors"
-version = "0.0.1"
+version = "0.0.2"
 authors = ["vaidehijoshi <vaidehi.sj@gmail.com>"]
 
-description = "A CSS color convertor"
+description = "A Rust parser and convertor for CSS colors."
 license = "ISC"
 
 [dependencies]
