@@ -1,5 +1,7 @@
 # css-colors
 
-[![Build Status](https://travis-ci.com/vaidehijoshi/css-colors.svg?branch=master)](https://travis-ci.com/vaidehijoshi/css-colors)
+[![Build Status](https://travis-ci.com/vaidehijoshi/css-colors.svg?branch=master)](https://travis-ci.com/vaidehijoshi/css-colors) [![css-colors](https://docs.rs/css-colors/badge.svg)](https://docs.rs/css-colors)
 
-Vaidehi’s Rust mini-project!
+A Rust parser and convertor for CSS colors.
+
+A work in progress 🙂
