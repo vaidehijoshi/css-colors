@@ -33,12 +33,7 @@ impl RGB {
     /// assert_eq!(salmon.to_css(), "rgb(250, 128, 114)");
     /// ```
     pub fn to_css(&self) -> String {
-        format!(
-            "rgb({red}, {green}, {blue})",
-            red = self.r,
-            green = self.g,
-            blue = self.b
-        )
+        self.to_string()
     }
 
     /// Converts a set of numerical RGB values into an RGBA struct.
@@ -98,13 +93,7 @@ impl RGBA {
     /// assert_eq!(salmon.to_css(), "rgba(250, 128, 114, 1)");
     /// ```
     pub fn to_css(&self) -> String {
-        format!(
-            "rgba({red}, {green}, {blue}, {alpha})",
-            red = self.r,
-            green = self.g,
-            blue = self.b,
-            alpha = self.a
-        )
+        self.to_string()
     }
 
     /// Converts a set of numerical RGBA values into an RGB struct.
