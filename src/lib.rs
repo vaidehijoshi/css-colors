@@ -24,11 +24,27 @@ impl fmt::Display for RGB {
 }
 
 impl RGB {
+    /// Transforms numerical values into an RGB struct.
+    ///
+    /// # Example
+    /// ```
+    /// use css_colors::RGB;
+    ///
+    /// let salmon = RGB::new(250, 128, 114);
+    ///
+    /// assert_eq!(salmon, RGB { r: 250, g: 128, b: 114 });
+    /// ```
+    pub fn new(r: u8, g: u8, b: u8) -> RGB {
+        RGB { r, g, b }
+    }
+
     /// Converts a set of RGBA values into valid CSS.
     ///
     /// # Example
     /// ```
-    /// let salmon = css_colors::RGB { r: 250, g: 128, b: 114 };
+    /// use css_colors::RGB;
+    ///
+    /// let salmon = RGB { r: 250, g: 128, b: 114 };
     ///
     /// assert_eq!(salmon.to_css(), "rgb(250, 128, 114)");
     /// ```
@@ -41,9 +57,11 @@ impl RGB {
     ///
     /// # Example
     /// ```
-    /// let tomato = css_colors::RGB { r: 255, g: 99, b: 71 };
+    /// use css_colors::{RGB, RGBA};
     ///
-    /// assert_eq!(tomato.to_rgba(), css_colors::RGBA { r: 255, g: 99, b: 71, a: 1.0 });
+    /// let tomato = RGB { r: 255, g: 99, b: 71 };
+    ///
+    /// assert_eq!(tomato.to_rgba(), RGBA { r: 255, g: 99, b: 71, a: 1.0 });
     /// ```
     pub fn to_rgba(&self) -> RGBA {
         RGBA {
@@ -84,6 +102,20 @@ impl fmt::Display for RGBA {
 }
 
 impl RGBA {
+    /// Transforms numerical values into an RGBA struct.
+    ///
+    /// # Example
+    /// ```
+    /// use css_colors::RGBA;
+    ///
+    /// let light_salmon = RGBA::new(250, 128, 114, 0.5);
+    ///
+    /// assert_eq!(light_salmon, RGBA { r: 250, g: 128, b: 114, a: 0.5 });
+    /// ```
+    pub fn new(r: u8, g: u8, b: u8, a: f32) -> RGBA {
+        RGBA { r, g, b, a }
+    }
+
     /// Converts a set of RGBA values into valid CSS.
     ///
     /// # Example
@@ -114,41 +146,6 @@ impl RGBA {
     }
 }
 
-// Public Functions
-
-/// Transforms numerical values into an RGB struct.
-///
-/// # Example
-/// ```
-/// let salmon = css_colors::rgb(250, 128, 114);
-///
-/// assert_eq!(salmon, css_colors::RGB { r: 250, g: 128, b: 114 });
-/// ```
-pub fn rgb(red: u8, green: u8, blue: u8) -> RGB {
-    RGB {
-        r: red,
-        g: green,
-        b: blue,
-    }
-}
-
-/// Transforms numerical values into an RGBA struct.
-///
-/// # Example
-/// ```
-/// let light_salmon = css_colors::rgba(250, 128, 114, 0.5);
-///
-/// assert_eq!(light_salmon, css_colors::RGBA { r: 250, g: 128, b: 114, a: 0.5 });
-/// ```
-pub fn rgba(red: u8, green: u8, blue: u8, alpha: f32) -> RGBA {
-    RGBA {
-        r: red,
-        g: green,
-        b: blue,
-        a: alpha,
-    }
-}
-
 #[cfg(test)]
 mod css_color_tests {
     use RGB;
@@ -156,9 +153,9 @@ mod css_color_tests {
 
     #[test]
     fn can_create_color_structs() {
-        assert_eq!(::rgb(5, 10, 15), RGB { r: 5, g: 10, b: 15 });
+        assert_eq!(RGB::new(5, 10, 15), RGB { r: 5, g: 10, b: 15 });
         assert_eq!(
-            ::rgba(5, 10, 15, 1.0),
+            RGBA::new(5, 10, 15, 1.0),
             RGBA {
                 r: 5,
                 g: 10,
