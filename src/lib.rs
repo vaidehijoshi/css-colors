@@ -46,12 +46,12 @@ impl RGB {
     /// assert_eq!(tomato.to_rgba(), css_colors::RGBA { r: 255, g: 99, b: 71, a: 1.0 });
     /// ```
     pub fn to_rgba(&self) -> RGBA {
-        return RGBA {
+        RGBA {
             r: self.r,
             g: self.g,
             b: self.b,
             a: 1.0,
-        };
+        }
     }
 }
 
@@ -106,11 +106,11 @@ impl RGBA {
     /// assert_eq!(tomato.to_rgb(), css_colors::RGB { r: 255, g: 99, b: 71 });
     /// ```
     pub fn to_rgb(&self) -> RGB {
-        return RGB {
+        RGB {
             r: self.r,
             g: self.g,
             b: self.b,
-        };
+        }
     }
 }
 
@@ -125,11 +125,11 @@ impl RGBA {
 /// assert_eq!(salmon, css_colors::RGB { r: 250, g: 128, b: 114 });
 /// ```
 pub fn rgb(red: u8, green: u8, blue: u8) -> RGB {
-    return RGB {
+    RGB {
         r: red,
         g: green,
         b: blue,
-    };
+    }
 }
 
 /// Transforms numerical values into an RGBA struct.
@@ -141,12 +141,12 @@ pub fn rgb(red: u8, green: u8, blue: u8) -> RGB {
 /// assert_eq!(light_salmon, css_colors::RGBA { r: 250, g: 128, b: 114, a: 0.5 });
 /// ```
 pub fn rgba(red: u8, green: u8, blue: u8, alpha: f32) -> RGBA {
-    return RGBA {
+    RGBA {
         r: red,
         g: green,
         b: blue,
         a: alpha,
-    };
+    }
 }
 
 #[cfg(test)]
