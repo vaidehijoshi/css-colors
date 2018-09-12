@@ -1,5 +1,17 @@
 use std::fmt;
 
+/// TODO...
+pub trait Color {
+    // TODO...
+    fn to_css(self) -> String;
+
+    // TODO...
+    fn to_rgb(self) -> RGB;
+
+    // TODO...
+    fn to_rgba(self) -> RGBA;
+}
+
 #[derive(Debug, Copy, Clone, PartialEq)]
 /// A struct to represent how much red, green, and blue should be added to create a color.
 ///
@@ -37,19 +49,25 @@ impl RGB {
     pub fn new(r: u8, g: u8, b: u8) -> RGB {
         RGB { r, g, b }
     }
+}
 
+impl Color for RGB {
     /// Converts a set of RGBA values into valid CSS.
     ///
     /// # Example
     /// ```
-    /// use css_colors::RGB;
+    /// use css_colors::{Color, RGB};
     ///
     /// let salmon = RGB { r: 250, g: 128, b: 114 };
     ///
     /// assert_eq!(salmon.to_css(), "rgb(250, 128, 114)");
     /// ```
-    pub fn to_css(&self) -> String {
+    fn to_css(self) -> String {
         self.to_string()
+    }
+
+    fn to_rgb(self) -> RGB {
+        self
     }
 
     /// Converts a set of numerical RGB values into an RGBA struct.
@@ -57,19 +75,14 @@ impl RGB {
     ///
     /// # Example
     /// ```
-    /// use css_colors::{RGB, RGBA};
+    /// use css_colors::{Color, RGB, RGBA};
     ///
     /// let tomato = RGB { r: 255, g: 99, b: 71 };
     ///
     /// assert_eq!(tomato.to_rgba(), RGBA { r: 255, g: 99, b: 71, a: 1.0 });
     /// ```
-    pub fn to_rgba(&self) -> RGBA {
-        RGBA {
-            r: self.r,
-            g: self.g,
-            b: self.b,
-            a: 1.0,
-        }
+    fn to_rgba(self) -> RGBA {
+        RGBA::new(self.r, self.g, self.b, 1.0)
     }
 }
 
@@ -115,16 +128,20 @@ impl RGBA {
     pub fn new(r: u8, g: u8, b: u8, a: f32) -> RGBA {
         RGBA { r, g, b, a }
     }
+}
 
+impl Color for RGBA {
     /// Converts a set of RGBA values into valid CSS.
     ///
     /// # Example
     /// ```
-    /// let salmon = css_colors::RGBA { r: 250, g: 128, b: 114, a: 1.0 };
+    /// use css_colors::{Color, RGBA};
+    ///
+    /// let salmon = RGBA { r: 250, g: 128, b: 114, a: 1.0 };
     ///
     /// assert_eq!(salmon.to_css(), "rgba(250, 128, 114, 1)");
     /// ```
-    pub fn to_css(&self) -> String {
+    fn to_css(self) -> String {
         self.to_string()
     }
 
@@ -133,23 +150,24 @@ impl RGBA {
     ///
     /// # Example
     /// ```
-    /// let tomato = css_colors::RGBA { r: 255, g: 99, b: 71, a: 1.0 };
+    /// use css_colors::{Color, RGB, RGBA};
     ///
-    /// assert_eq!(tomato.to_rgb(), css_colors::RGB { r: 255, g: 99, b: 71 });
+    /// let tomato = RGBA { r: 255, g: 99, b: 71, a: 1.0 };
+    ///
+    /// assert_eq!(tomato.to_rgb(), RGB { r: 255, g: 99, b: 71 });
     /// ```
-    pub fn to_rgb(&self) -> RGB {
-        RGB {
-            r: self.r,
-            g: self.g,
-            b: self.b,
-        }
+    fn to_rgb(self) -> RGB {
+        RGB::new(self.r, self.g, self.b)
+    }
+
+    fn to_rgba(self) -> RGBA {
+        self
     }
 }
 
 #[cfg(test)]
 mod css_color_tests {
-    use RGB;
-    use RGBA;
+    use {Color, RGB, RGBA};
 
     #[test]
     fn can_create_color_structs() {
