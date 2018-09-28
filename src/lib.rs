@@ -1,14 +1,48 @@
 use std::fmt;
 
-/// TODO...
+/// A trait that can be used for converting between different color models
+/// and performing various transformations on them.
 pub trait Color {
-    // TODO...
+    /// Constructs a valid CSS color string for a given color type.
+    ///
+    /// # Examples
+    /// ```
+    /// use css_colors::{Color, RGB, RGBA};
+    ///
+    /// let salmon = RGB { r: 250, g: 128, b: 114 };
+    /// let opaque_salmon = RGBA { r: 250, g: 128, b: 114, a: 0.5 };
+    ///
+    /// assert_eq!(salmon.to_css(), "rgb(250, 128, 114)");
+    /// assert_eq!(opaque_salmon.to_css(), "rgba(250, 128, 114, 0.5)");
+    /// ```
     fn to_css(self) -> String;
 
-    // TODO...
+    /// Converts self into its RGB representation.
+    /// When converting from a color model that supports an alpha channel
+    /// (e.g. RGBA), the alpha value will not be preserved.
+    ///
+    /// # Examples
+    /// ```
+    /// use css_colors::{Color, RGB, RGBA};
+    ///
+    /// let opaque_tomato = RGBA { r: 255, g: 99, b: 71, a: 0.5 };
+    ///
+    /// assert_eq!(opaque_tomato.to_rgb(), RGB { r: 255, g: 99, b: 71 });
+    /// ```
     fn to_rgb(self) -> RGB;
 
-    // TODO...
+    /// Converts self into its RGBA representation.
+    /// When converting from a color model that does not supports an alpha channel
+    /// (e.g. RGB), it will be treated as fully opaque (i.e. with a value of 1.0).
+    ///
+    /// # Examples
+    /// ```
+    /// use css_colors::{Color, RGB, RGBA};
+    ///
+    /// let tomato = RGB { r: 255, g: 99, b: 71 };
+    ///
+    /// assert_eq!(tomato.to_rgba(), RGBA { r: 255, g: 99, b: 71, a: 1.0 });
+    /// ```
     fn to_rgba(self) -> RGBA;
 }
 
@@ -52,16 +86,6 @@ impl RGB {
 }
 
 impl Color for RGB {
-    /// Converts a set of RGBA values into valid CSS.
-    ///
-    /// # Example
-    /// ```
-    /// use css_colors::{Color, RGB};
-    ///
-    /// let salmon = RGB { r: 250, g: 128, b: 114 };
-    ///
-    /// assert_eq!(salmon.to_css(), "rgb(250, 128, 114)");
-    /// ```
     fn to_css(self) -> String {
         self.to_string()
     }
@@ -70,17 +94,6 @@ impl Color for RGB {
         self
     }
 
-    /// Converts a set of numerical RGB values into an RGBA struct.
-    /// Defaults to an alpha value of 1.0.
-    ///
-    /// # Example
-    /// ```
-    /// use css_colors::{Color, RGB, RGBA};
-    ///
-    /// let tomato = RGB { r: 255, g: 99, b: 71 };
-    ///
-    /// assert_eq!(tomato.to_rgba(), RGBA { r: 255, g: 99, b: 71, a: 1.0 });
-    /// ```
     fn to_rgba(self) -> RGBA {
         RGBA::new(self.r, self.g, self.b, 1.0)
     }
@@ -131,31 +144,10 @@ impl RGBA {
 }
 
 impl Color for RGBA {
-    /// Converts a set of RGBA values into valid CSS.
-    ///
-    /// # Example
-    /// ```
-    /// use css_colors::{Color, RGBA};
-    ///
-    /// let salmon = RGBA { r: 250, g: 128, b: 114, a: 1.0 };
-    ///
-    /// assert_eq!(salmon.to_css(), "rgba(250, 128, 114, 1)");
-    /// ```
     fn to_css(self) -> String {
         self.to_string()
     }
 
-    /// Converts a set of numerical RGBA values into an RGB struct.
-    /// Ignores any alpha value supplemented.
-    ///
-    /// # Example
-    /// ```
-    /// use css_colors::{Color, RGB, RGBA};
-    ///
-    /// let tomato = RGBA { r: 255, g: 99, b: 71, a: 1.0 };
-    ///
-    /// assert_eq!(tomato.to_rgb(), RGB { r: 255, g: 99, b: 71 });
-    /// ```
     fn to_rgb(self) -> RGB {
         RGB::new(self.r, self.g, self.b)
     }
