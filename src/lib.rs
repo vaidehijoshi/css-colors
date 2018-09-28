@@ -10,10 +10,10 @@ pub trait Color {
     /// use css_colors::{Color, RGB, RGBA};
     ///
     /// let salmon = RGB { r: 250, g: 128, b: 114 };
-    /// let opaque_salmon = RGBA { r: 250, g: 128, b: 114, a: 0.5 };
+    /// let opaque_salmon = RGBA { r: 250, g: 128, b: 114, a: 128 };
     ///
     /// assert_eq!(salmon.to_css(), "rgb(250, 128, 114)");
-    /// assert_eq!(opaque_salmon.to_css(), "rgba(250, 128, 114, 0.5)");
+    /// assert_eq!(opaque_salmon.to_css(), "rgba(250, 128, 114, 0.50)");
     /// ```
     fn to_css(self) -> String;
 
@@ -25,7 +25,7 @@ pub trait Color {
     /// ```
     /// use css_colors::{Color, RGB, RGBA};
     ///
-    /// let opaque_tomato = RGBA { r: 255, g: 99, b: 71, a: 0.5 };
+    /// let opaque_tomato = RGBA { r: 255, g: 99, b: 71, a: 128 };
     ///
     /// assert_eq!(opaque_tomato.to_rgb(), RGB { r: 255, g: 99, b: 71 });
     /// ```
@@ -41,7 +41,7 @@ pub trait Color {
     ///
     /// let tomato = RGB { r: 255, g: 99, b: 71 };
     ///
-    /// assert_eq!(tomato.to_rgba(), RGBA { r: 255, g: 99, b: 71, a: 1.0 });
+    /// assert_eq!(tomato.to_rgba(), RGBA { r: 255, g: 99, b: 71, a: 255 });
     /// ```
     fn to_rgba(self) -> RGBA;
 }
@@ -95,7 +95,7 @@ impl Color for RGB {
     }
 
     fn to_rgba(self) -> RGBA {
-        RGBA::new(self.r, self.g, self.b, 1.0)
+        RGBA::new(self.r, self.g, self.b, 255)
     }
 }
 
@@ -103,8 +103,7 @@ impl Color for RGB {
 /// A struct to represent how much red, green, and blue should be added to create a color.
 /// Also handles alpha specifications.
 ///
-/// Valid values for r, g, and b must fall between `0-255`.
-/// Valid values for alpha specifications must be a percentage ranging between `0.0 - 1.0`.
+/// Valid values for r, g, b, and a must fall between `0-255`.
 ///
 /// For more, see the [CSS Color Spec](https://www.w3.org/TR/2018/REC-css-color-3-20180619/#rgba-color).
 pub struct RGBA {
@@ -118,12 +117,12 @@ pub struct RGBA {
     pub b: u8,
 
     // alpha
-    pub a: f32,
+    pub a: u8,
 }
 
 impl fmt::Display for RGBA {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "rgba({}, {}, {}, {})", self.r, self.g, self.b, self.a)
+        write!(f, "rgba({}, {}, {}, {:.02})", self.r, self.g, self.b, self.a as f32 / 255.0)
     }
 }
 
@@ -134,11 +133,11 @@ impl RGBA {
     /// ```
     /// use css_colors::RGBA;
     ///
-    /// let light_salmon = RGBA::new(250, 128, 114, 0.5);
+    /// let light_salmon = RGBA::new(250, 128, 114, 128);
     ///
-    /// assert_eq!(light_salmon, RGBA { r: 250, g: 128, b: 114, a: 0.5 });
+    /// assert_eq!(light_salmon, RGBA { r: 250, g: 128, b: 114, a: 128 });
     /// ```
-    pub fn new(r: u8, g: u8, b: u8, a: f32) -> RGBA {
+    pub fn new(r: u8, g: u8, b: u8, a: u8) -> RGBA {
         RGBA { r, g, b, a }
     }
 }
@@ -165,12 +164,12 @@ mod css_color_tests {
     fn can_create_color_structs() {
         assert_eq!(RGB::new(5, 10, 15), RGB { r: 5, g: 10, b: 15 });
         assert_eq!(
-            RGBA::new(5, 10, 15, 1.0),
+            RGBA::new(5, 10, 15, 255),
             RGBA {
                 r: 5,
                 g: 10,
                 b: 15,
-                a: 1.0
+                a: 255
             }
         );
     }
@@ -182,7 +181,7 @@ mod css_color_tests {
             r: 5,
             g: 10,
             b: 15,
-            a: 1.0,
+            a: 255,
         };
 
         assert_eq!(
@@ -191,7 +190,7 @@ mod css_color_tests {
                 r: 5,
                 g: 10,
                 b: 15,
-                a: 1.0
+                a: 255,
             }
         );
         assert_eq!(rgba_color.to_rgb(), RGB { r: 5, g: 10, b: 15 });
@@ -204,7 +203,7 @@ mod css_color_tests {
             r: 5,
             g: 10,
             b: 15,
-            a: 1.0,
+            a: 255,
         };
 
         assert_eq!(rgb_color, rgb_color.clone());
@@ -217,14 +216,14 @@ mod css_color_tests {
             r: 5,
             g: 10,
             b: 15,
-            a: 1.0,
+            a: 255,
         };
         let copied_rgb_color = rgb_color;
         let rgba_color = RGBA {
             r: 5,
             g: 10,
             b: 15,
-            a: 1.0,
+            a: 255,
         };
         let copied_rgba_color = rgba_color;
 
@@ -241,12 +240,12 @@ mod css_color_tests {
                 r: 5,
                 g: 10,
                 b: 15,
-                a: 1.0
+                a: 255
             }
         );
 
         assert_eq!(rgb_value, "RGB { r: 5, g: 10, b: 15 }");
-        assert_eq!(rgba_value, "RGBA { r: 5, g: 10, b: 15, a: 1.0 }");
+        assert_eq!(rgba_value, "RGBA { r: 5, g: 10, b: 15, a: 255 }");
     }
 
     #[test]
@@ -260,11 +259,11 @@ mod css_color_tests {
             r: 5,
             g: 10,
             b: 255,
-            a: 1.0,
+            a: 255,
         };
 
         assert_eq!(rgb.to_css(), "rgb(5, 10, 255)");
-        assert_eq!(rgba.to_css(), "rgba(5, 10, 255, 1)");
+        assert_eq!(rgba.to_css(), "rgba(5, 10, 255, 1.00)");
     }
 
     #[test]
@@ -283,12 +282,12 @@ mod css_color_tests {
                 r: 5,
                 g: 10,
                 b: 255,
-                a: 1.0
+                a: 255,
             }
         );
 
         assert_eq!(printed_rgb, "rgb(5, 10, 255)");
-        assert_eq!(printed_rgba, "rgba(5, 10, 255, 1)");
+        assert_eq!(printed_rgba, "rgba(5, 10, 255, 1.00)");
     }
 
     #[test]
@@ -302,7 +301,7 @@ mod css_color_tests {
             r: 5,
             g: 10,
             b: 255,
-            a: 0.75,
+            a: 190,
         };
 
         assert_eq!("rgb(5, 10, 255)".to_owned(), format!("{}", rgb));
@@ -320,10 +319,10 @@ mod css_color_tests {
             r: 5,
             g: 10,
             b: 255,
-            a: 0.5,
+            a: 128,
         };
 
         assert_eq!(String::from("rgb(5, 10, 255)"), rgb.to_string());
-        assert_eq!(String::from("rgba(5, 10, 255, 0.5)"), rgba.to_string());
+        assert_eq!(String::from("rgba(5, 10, 255, 0.50)"), rgba.to_string());
     }
 }
