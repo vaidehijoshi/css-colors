@@ -3,7 +3,7 @@ use std::fmt;
 /// A trait that can be used for converting between different color models
 /// and performing various transformations on them.
 pub trait Color {
-    /// Constructs a valid CSS color string for a given color type.
+    /// Converts `self` to its CSS string format.
     ///
     /// # Examples
     /// ```
@@ -17,7 +17,7 @@ pub trait Color {
     /// ```
     fn to_css(self) -> String;
 
-    /// Converts self into its RGB representation.
+    /// Converts `self` into its RGB representation.
     /// When converting from a color model that supports an alpha channel
     /// (e.g. RGBA), the alpha value will not be preserved.
     ///
@@ -31,9 +31,9 @@ pub trait Color {
     /// ```
     fn to_rgb(self) -> RGB;
 
-    /// Converts self into its RGBA representation.
+    /// Converts `self` into its RGBA representation.
     /// When converting from a color model that does not supports an alpha channel
-    /// (e.g. RGB), it will be treated as fully opaque (i.e. with a value of 1.0).
+    /// (e.g. RGB), it will be treated as fully opaque.
     ///
     /// # Examples
     /// ```
