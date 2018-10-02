@@ -206,12 +206,12 @@ impl Color for HSL {
 
     fn to_rgb(self) -> RGB {
         // FIXME: create impl, add tests for this
-        RGB::new(self.h as u8, self.s, self.l)
+        RGB::new(0, 0, 0)
     }
 
     fn to_rgba(self) -> RGBA {
         // FIXME: create impl, add tests for this
-        RGBA::new(self.h as u8, self.s, self.l, 255)
+        RGBA::new(0, 0, 0, 0)
     }
 }
 
@@ -269,12 +269,12 @@ impl Color for HSLA {
 
     fn to_rgb(self) -> RGB {
         // FIXME: create impl, add tests for this
-        RGB::new(self.h as u8, self.s, self.l)
+        RGB::new(0, 0, 0)
     }
 
     fn to_rgba(self) -> RGBA {
         // FIXME: create impl, add tests for this
-        RGBA::new(self.h as u8, self.s, self.l, self.a)
+        RGBA::new(0, 0, 0, 0)
     }
 }
 
@@ -322,6 +322,17 @@ mod css_color_tests {
             b: 15,
             a: 255,
         };
+        let hsl_color = HSL {
+            h: 6.0,
+            s: 93,
+            l: 71,
+        };
+        let hsla_color = HSLA {
+            h: 6.0,
+            s: 93,
+            l: 71,
+            a: 255,
+        };
 
         assert_eq!(
             rgb_color.to_rgba(),
@@ -333,6 +344,12 @@ mod css_color_tests {
             }
         );
         assert_eq!(rgba_color.to_rgb(), RGB { r: 5, g: 10, b: 15 });
+
+        // FIXME: update these tests once HSL <-> RBG impl exists
+        assert_eq!(hsl_color.to_rgb(), RGB { r: 0, g: 0, b: 0 });
+        assert_eq!(hsl_color.to_rgba(), RGBA { r: 0, g: 0, b: 0, a: 0 });
+        assert_eq!(hsla_color.to_rgb(), RGB { r: 0, g: 0, b: 0 });
+        assert_eq!(hsla_color.to_rgba(), RGBA { r: 0, g: 0, b: 0, a: 0 });
     }
 
     #[test]
