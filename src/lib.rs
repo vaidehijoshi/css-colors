@@ -1,4 +1,5 @@
 use std::fmt;
+use std::ops;
 
 /// A trait that can be used for converting between different color models
 /// and performing various transformations on them.
@@ -165,10 +166,8 @@ impl Color for RGBA {
 ///
 /// For more, see the [CSS Color Spec](https://www.w3.org/TR/2018/REC-css-color-3-20180619/#hsl-color).
 pub struct HSL {
-    // TOD0: can i do this with only u8's? is f32 really the best type here??
-    // FIXME: make sure this panics when it exceeds upper bounds.
     // hue
-    pub h: f32,
+    pub h: Angle,
 
     // saturation
     pub s: u8,
@@ -179,7 +178,7 @@ pub struct HSL {
 
 impl fmt::Display for HSL {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "hsl({}, {}%, {}%)", self.h, self.s, self.l)
+        write!(f, "hsl({}, {}%, {}%)", self.h.degrees(), self.s, self.l)
     }
 }
 
@@ -188,13 +187,13 @@ impl HSL {
     ///
     /// # Example
     /// ```
-    /// use css_colors::HSL;
+    /// use {css_colors::HSL, css_colors::Angle};
     ///
-    /// let salmon = HSL::new(6.0, 93, 71);
+    /// let salmon = HSL::new(Angle::new(6), 93, 71);
     ///
-    /// assert_eq!(salmon, HSL { h: 6.0, s: 93, l: 71 });
+    /// assert_eq!(salmon, HSL { h: Angle { degrees: 6 }, s: 93, l: 71 });
     /// ```
-    pub fn new(h: f32, s: u8, l: u8) -> HSL {
+    pub fn new(h: Angle, s: u8, l: u8) -> HSL {
         HSL { h, s, l }
     }
 }
@@ -225,10 +224,8 @@ impl Color for HSL {
 ///
 /// For more, see the [CSS Color Spec](https://www.w3.org/TR/2018/REC-css-color-3-20180619/#hsla-color).
 pub struct HSLA {
-    // TOD0: can i do this with only u8's? is f32 really the best type here??
-    // FIXME: make sure this panics when it exceeds upper bounds.
     // hue
-    pub h: f32,
+    pub h: Angle,
 
     // saturation
     pub s: u8,
@@ -251,13 +248,12 @@ impl HSLA {
     ///
     /// # Example
     /// ```
-    /// use css_colors::HSLA;
+    /// use {css_colors::HSLA, css_colors::Angle};
+    /// let light_salmon = HSLA::new(Angle::new(6), 93, 71, 128);
     ///
-    /// let light_salmon = HSLA::new(6.0, 93, 71, 128);
-    ///
-    /// assert_eq!(light_salmon, HSLA { h: 6.0, s: 93, l: 71, a: 128 });
+    /// assert_eq!(light_salmon, HSLA { h: Angle { degrees: 6 }, s: 93, l: 71, a: 128 });
     /// ```
-    pub fn new(h: f32, s: u8, l: u8, a: u8) -> HSLA {
+    pub fn new(h: Angle, s: u8, l: u8, a: u8) -> HSLA {
         HSLA { h, s, l, a }
     }
 }
@@ -278,10 +274,173 @@ impl Color for HSLA {
     }
 }
 
+#[derive(Debug, Copy, Clone, Eq, PartialEq, Ord, PartialOrd)]
+/// A struct that represents the number of degrees in a circle.
+/// Legal values range from `0-359`. Anything else is unsused.
+pub struct Angle {
+    pub degrees: u16,
+}
+
+impl Angle {
+    pub fn new(degrees: u16) -> Self {
+        assert!(degrees < 360, "invalid angle");
+
+        Angle { degrees }
+    }
+
+    pub fn degrees(self) -> u16 {
+        self.degrees
+    }
+}
+
+impl fmt::Display for Angle {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{}", self.degrees)
+    }
+}
+
+impl ops::Neg for Angle {
+    type Output = Angle;
+
+    fn neg(self) -> Angle {
+        Angle { degrees: (360 - self.degrees) % 360 }
+    }
+}
+
+impl ops::Add for Angle {
+    type Output = Angle;
+
+    fn add(self, other: Angle) -> Angle {
+        let temp: u32 = self.degrees as u32 + other.degrees as u32;
+        let degrees: u16 = (temp % 360) as u16;
+
+        Angle { degrees }
+    }
+}
+
+impl ops::Sub for Angle {
+    type Output = Angle;
+
+    fn sub(self, other: Angle) -> Angle {
+        self + (-other)
+    }
+}
+
+impl ops::Mul for Angle {
+    type Output = Angle;
+
+    fn mul(self, other: Angle) -> Angle {
+        let temp: u32 = self.degrees as u32 * other.degrees as u32;
+        let degrees: u16 = (temp % 360) as u16;
+
+        Angle { degrees }
+    }
+}
+
+impl ops::Div for Angle {
+    type Output = Angle;
+
+    fn div(self, other: Angle) -> Angle {
+        if other.degrees == 0 {
+            panic!("Cannot divide by zero-valued `Angle`!");
+        }
+
+        let temp: u32 = self.degrees as u32 / other.degrees as u32;
+        let degrees: u16 = (temp % 360) as u16;
+
+        Angle { degrees }
+    }
+}
+
 #[cfg(test)]
 mod css_color_tests {
-    use {Color, RGB, RGBA, HSL, HSLA};
+    use {Color, RGB, RGBA, HSL, HSLA, Angle};
 
+    // Angle & degree tests
+    #[test]
+    fn can_have_degrees() {
+        assert_eq!(Angle::new(30).degrees(), 30);
+        assert_eq!(Angle::new(47).degrees(), 47);
+    }
+
+    #[test]
+    fn can_display_angles() {
+        assert_eq!("30", format!("{}", Angle::new(30)));
+        assert_eq!("30", Angle::new(30).to_string());
+    }
+
+    #[test]
+    fn can_eq_angles() {
+        assert_eq!(Angle::new(30), Angle::new(30));
+        assert_ne!(Angle::new(30), Angle::new(47));
+    }
+
+    #[test]
+    fn can_ord_angles() {
+        assert_eq!(Angle::new(30) < Angle::new(47), true);
+        assert_eq!(Angle::new(47) < Angle::new(30), false);
+        assert_eq!(Angle::new(30) < Angle::new(30), false);
+
+        assert_eq!(Angle::new(30) <= Angle::new(47), true);
+        assert_eq!(Angle::new(47) <= Angle::new(30), false);
+        assert_eq!(Angle::new(30) <= Angle::new(30), true);
+
+        assert_eq!(Angle::new(30) > Angle::new(47), false);
+        assert_eq!(Angle::new(47) > Angle::new(30), true);
+        assert_eq!(Angle::new(30) > Angle::new(30), false);
+
+        assert_eq!(Angle::new(30) >= Angle::new(47), false);
+        assert_eq!(Angle::new(47) >= Angle::new(30), true);
+        assert_eq!(Angle::new(30) >= Angle::new(30), true);
+    }
+
+    #[test]
+    fn can_add_angles() {
+        assert_eq!(Angle::new(30) + Angle::new(47), Angle::new(77));
+        assert_eq!(Angle::new(47) + Angle::new(30), Angle::new(77));
+        assert_eq!(Angle::new(359) + Angle::new(1), Angle::new(0));
+        assert_eq!(Angle::new(359) + Angle::new(359) + Angle::new(359), Angle::new(357));
+    }
+
+    #[test]
+    fn can_sub_angles() {
+        assert_eq!(Angle::new(30) - Angle::new(47), Angle::new(343));
+        assert_eq!(Angle::new(47) - Angle::new(30), Angle::new(17));
+        assert_eq!(Angle::new(0) - Angle::new(1), Angle::new(359));
+        assert_eq!(Angle::new(0) - Angle::new(359) - Angle::new(359) - Angle::new(359), Angle::new(3));
+    }
+
+    #[test]
+    fn test_mul_angles() {
+        assert_eq!(Angle::new(30) * Angle::new(0), Angle::new(0));
+        assert_eq!(Angle::new(30) * Angle::new(1), Angle::new(30));
+        assert_eq!(Angle::new(30) * Angle::new(2), Angle::new(60));
+
+        assert_eq!(Angle::new(30) * Angle::new(12), Angle::new(0));
+        assert_eq!(Angle::new(30) * Angle::new(13), Angle::new(30));
+        assert_eq!(Angle::new(30) * Angle::new(100), Angle::new(120));
+
+        assert_eq!(Angle::new(47) * Angle::new(0), Angle::new(0));
+        assert_eq!(Angle::new(47) * Angle::new(1), Angle::new(47));
+        assert_eq!(Angle::new(47) * Angle::new(2), Angle::new(94));
+
+        assert_eq!(Angle::new(47) * Angle::new(8), Angle::new(16));
+        assert_eq!(Angle::new(47) * Angle::new(100), Angle::new(20));
+    }
+
+    #[test]
+    fn test_divide_angles() {
+        assert_eq!(Angle::new(30) / Angle::new(1), Angle::new(30));
+        assert_eq!(Angle::new(30) / Angle::new(2), Angle::new(15));
+
+        assert_eq!(Angle::new(180) / Angle::new(12), Angle::new(15));
+        assert_eq!(Angle::new(180) / Angle::new(2), Angle::new(90));
+        assert_eq!(Angle::new(180) / Angle::new(5), Angle::new(36));
+
+        assert_eq!(Angle::new(47) / Angle::new(2), Angle::new(23));
+    }
+
+    // Color representation tests
     #[test]
     fn can_create_color_structs() {
         assert_eq!(RGB::new(5, 10, 15), RGB { r: 5, g: 10, b: 15 });
@@ -295,17 +454,17 @@ mod css_color_tests {
             }
         );
         assert_eq!(
-            HSL::new(6.0, 93, 71),
+            HSL::new(Angle::new(6), 93, 71),
             HSL {
-                h: 6.0,
+                h: Angle::new(6),
                 s: 93,
                 l: 71
             }
         );
         assert_eq!(
-            HSLA::new(6.0, 93, 71, 255),
+            HSLA::new(Angle::new(6), 93, 71, 255),
             HSLA {
-                h: 6.0,
+                h: Angle::new(6),
                 s: 93,
                 l: 71,
                 a: 255
@@ -323,12 +482,12 @@ mod css_color_tests {
             a: 255,
         };
         let hsl_color = HSL {
-            h: 6.0,
+            h: Angle::new(6),
             s: 93,
             l: 71,
         };
         let hsla_color = HSLA {
-            h: 6.0,
+            h: Angle::new(6),
             s: 93,
             l: 71,
             a: 255,
@@ -362,12 +521,12 @@ mod css_color_tests {
             a: 255,
         };
         let hsl_color = HSL {
-            h: 6.0,
+            h: Angle::new(6),
             s: 93,
             l: 71,
         };
         let hsla_color = HSLA {
-            h: 6.0,
+            h: Angle::new(6),
             s: 93,
             l: 71,
             a: 255,
@@ -396,13 +555,13 @@ mod css_color_tests {
         };
         let copied_rgba_color = rgba_color;
         let hsl_color = HSL {
-            h: 6.0,
+            h: Angle::new(6),
             s: 93,
             l: 71,
         };
         let copied_hsl_color = hsl_color;
         let hsla_color = HSLA {
-            h: 6.0,
+            h: Angle::new(6),
             s: 93,
             l: 71,
             a: 255,
@@ -430,7 +589,7 @@ mod css_color_tests {
         let hsl_value = format!(
             "{:?}",
             HSL {
-                h: 6.0,
+                h: Angle::new(6),
                 s: 93,
                 l: 71,
             }
@@ -438,7 +597,7 @@ mod css_color_tests {
         let hsla_value = format!(
             "{:?}",
             HSLA {
-                h: 6.0,
+                h: Angle::new(6),
                 s: 93,
                 l: 71,
                 a: 255
@@ -447,8 +606,8 @@ mod css_color_tests {
 
         assert_eq!(rgb_value, "RGB { r: 5, g: 10, b: 15 }");
         assert_eq!(rgba_value, "RGBA { r: 5, g: 10, b: 15, a: 255 }");
-        assert_eq!(hsl_value, "HSL { h: 6.0, s: 93, l: 71 }");
-        assert_eq!(hsla_value, "HSLA { h: 6.0, s: 93, l: 71, a: 255 }");
+        assert_eq!(hsl_value, "HSL { h: Angle { degrees: 6 }, s: 93, l: 71 }");
+        assert_eq!(hsla_value, "HSLA { h: Angle { degrees: 6 }, s: 93, l: 71, a: 255 }");
     }
 
     #[test]
@@ -465,12 +624,12 @@ mod css_color_tests {
             a: 255,
         };
         let hsl = HSL {
-            h: 6.0,
+            h: Angle::new(6),
             s: 93,
             l: 71,
         };
         let hsla = HSLA {
-            h: 6.0,
+            h: Angle::new(6),
             s: 93,
             l: 71,
             a: 255,
@@ -504,7 +663,7 @@ mod css_color_tests {
         let printed_hsl = format!(
             "{}",
             HSL {
-                h: 6.0,
+                h: Angle::new(6),
                 s: 93,
                 l: 71,
             }
@@ -512,7 +671,7 @@ mod css_color_tests {
         let printed_hsla = format!(
             "{}",
             HSLA {
-                h: 6.0,
+                h: Angle::new(6),
                 s: 93,
                 l: 71,
                 a: 255,
@@ -539,12 +698,12 @@ mod css_color_tests {
             a: 190,
         };
         let hsl = HSL {
-            h: 6.0,
+            h: Angle::new(6),
             s: 93,
             l: 71,
         };
         let hsla = HSLA {
-            h: 6.0,
+            h: Angle::new(6),
             s: 93,
             l: 71,
             a: 255
@@ -570,12 +729,12 @@ mod css_color_tests {
             a: 128,
         };
         let hsl = HSL {
-            h: 6.0,
+            h: Angle::new(6),
             s: 93,
             l: 71,
         };
         let hsla = HSLA {
-            h: 6.0,
+            h: Angle::new(6),
             s: 93,
             l: 71,
             a: 128
