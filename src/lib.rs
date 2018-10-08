@@ -48,6 +48,20 @@ pub trait Color {
     /// assert_eq!(tomato.to_rgba(), RGBA { r: 255, g: 99, b: 71, a: 255 });
     /// ```
     fn to_rgba(self) -> RGBA;
+
+    /// Converts `self` into its HSL representation.
+    /// When converting from a color model that supports an alpha channel
+    /// (e.g. RGBA), the alpha value will not be preserved.
+    ///
+    /// # TODO: Examples
+    fn to_hsl(self) -> HSL;
+
+    /// Converts `self` into its HSLA representation.
+    /// When converting from a color model that does not supports an alpha channel
+    /// (e.g. RGB), it will be treated as fully opaque.
+    ///
+    /// # TODO: Examples
+    fn to_hsla(self) -> HSLA;
 }
 
 #[derive(Debug, Copy, Clone, PartialEq)]
@@ -100,6 +114,22 @@ impl Color for RGB {
 
     fn to_rgba(self) -> RGBA {
         RGBA::new(self.r, self.g, self.b, 255)
+    }
+
+    fn to_hsl(self) -> HSL {
+        // To determine luminosity: `(min(RGB) + max(RGB)) / 2`
+        // 1. convert the RGB values into a range from `0-1`
+        let values = [self.r / 255, self.g / 255, self.b / 255];
+
+        // 2. find the max and min value of the converted values and sum them together and divide by 2
+        // let luminosity = (values.iter().max().unwrap() + values.iter().min().unwrap()) / 2;
+        let luminosity = values.iter().max().unwrap();
+
+        HSL::new(Angle::new(0), 0, *luminosity)
+    }
+
+    fn to_hsla(self) -> HSLA {
+        HSLA::new(Angle::new(0), 0, 0, 0)
     }
 }
 
@@ -158,6 +188,14 @@ impl Color for RGBA {
     fn to_rgba(self) -> RGBA {
         self
     }
+
+    fn to_hsl(self) -> HSL {
+        HSL::new(Angle::new(0), 0, 0)
+    }
+
+    fn to_hsla(self) -> HSLA {
+        HSLA::new(Angle::new(0), 0, 0, 0)
+    }
 }
 
 #[derive(Debug, Copy, Clone, PartialEq)]
@@ -214,6 +252,14 @@ impl Color for HSL {
     fn to_rgba(self) -> RGBA {
         // FIXME: create impl, add tests for this
         RGBA::new(0, 0, 0, 0)
+    }
+
+    fn to_hsl(self) -> HSL {
+        self
+    }
+
+    fn to_hsla(self) -> HSLA {
+        HSLA::new(self.h, self.s, self.l, 255)
     }
 }
 
@@ -275,6 +321,14 @@ impl Color for HSLA {
         // FIXME: create impl, add tests for this
         RGBA::new(0, 0, 0, 0)
     }
+
+    fn to_hsl(self) -> HSL {
+        HSL::new(self.h, self.s, self.l)
+    }
+
+    fn to_hsla(self) -> HSLA {
+        self
+    }
 }
 
 
@@ -314,7 +368,7 @@ mod css_color_tests {
     }
 
     #[test]
-    fn can_convert_between_rgb_notations() {
+    fn can_convert_to_rgb_notations() {
         let rgb_color = RGB { r: 5, g: 10, b: 15 };
         let rgba_color = RGBA {
             r: 5,
@@ -350,6 +404,36 @@ mod css_color_tests {
         assert_eq!(hsl_color.to_rgba(), RGBA { r: 0, g: 0, b: 0, a: 0 });
         assert_eq!(hsla_color.to_rgb(), RGB { r: 0, g: 0, b: 0 });
         assert_eq!(hsla_color.to_rgba(), RGBA { r: 0, g: 0, b: 0, a: 0 });
+    }
+
+    #[test]
+    fn can_convert_to_hsl_notations() {
+        let rgb_rust = RGB {
+            r: 172,
+            g: 95,
+            b: 82,
+        };
+        let rgba_rust = RGBA {
+            r: 172,
+            g: 95,
+            b: 82,
+            a: 128,
+        };
+        let hsl_rust = HSL {
+            h: Angle::new(9),
+            s: 35,
+            l: 50,
+        };
+        let hsla_rust = HSLA {
+            h: Angle::new(9),
+            s: 35,
+            l: 50,
+            a: 128,
+        };
+
+        // FIXME: update these tests once HSL <-> RBG impl exists
+        assert_eq!(rgb_rust.to_hsl(), hsl_rust);
+        assert_eq!(rgba_rust.to_hsla(), hsla_rust);
     }
 
     #[test]
