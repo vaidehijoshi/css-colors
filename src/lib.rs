@@ -117,18 +117,82 @@ impl Color for RGB {
     }
 
     fn to_hsl(self) -> HSL {
+        let RGB { r, g, b } = self;
+
+        if r == g && g == b {
+            return HSL::new(
+                Angle::new(0),
+                0,
+                // TODO Ratio::from_u8(r)
+                // or just `r` (if `r` is a Ratio already)
+                (100.0 * (r as f32) / 255.0).round() as u8,
+            );
+        }
+
         // To determine luminosity: `(min(RGB) + max(RGB)) / 2`
         // 1. convert the RGB values into a range from `0-1`
-        let values = [self.r as f32 / 255.0, self.g as f32 / 255.0, self.b as f32 / 255.0];
+
+        // let r = self.r.to_f32() if r is a Ratio
+        let r = self.r as f32 / 255.0;
+        let g = self.g as f32 / 255.0;
+        let b = self.b as f32 / 255.0;
+
+        // let max = vec![r, g, b].iter().max().to_f32()
+        let max = if r > g && r > b {
+            r
+        } else if g > b {
+            g
+        } else {
+            b
+        };
+
+        let min = if r < g && r < b {
+            r
+        } else if g < b {
+            g
+        } else {
+            b
+        };
 
         // 2. find the max and min value of the converted values and sum them together and divide by 2
-        let luminosity = (values.iter().max().unwrap() + values.iter().min().unwrap()) / 2.0;
+        let luminosity = (max + min) / 2.0;
 
-        HSL::new(Angle::new(0), luminosity as u8, luminosity as u8)
+        // If Luminance is smaller then 0.5, then Saturation = (max-min)/(max+min)
+        // If Luminance is bigger then 0.5. then Saturation = ( max-min)/(2.0-max-min)
+        let saturation = if luminosity < 0.5 {
+            (max - min) / (max + min)
+        } else {
+            (max - min) / (2.0 - max - min)
+        };
+
+        // If Red is max, then Hue = (G-B)/(max-min)
+        // If Green is max, then Hue = 2.0 + (B-R)/(max-min)
+        // If Blue is max, then Hue = 4.0 + (R-G)/(max-min)
+
+        let mut hue = if max == r {
+            (g - b) / (max - min)
+        } else if max == g {
+            2.0 + (b - r) / (max - min)
+        } else {
+            4.0 + (r - g) / (max - min)
+        };
+
+        // The Hue value you get needs to be multiplied by 60 to convert it to degrees on the color circle
+        // If Hue becomes negative you need to add 360 to, because a circle has 360 degrees.
+        hue *= 60.0;
+
+        assert!(hue >= 0.0, "oops, forgot to handle negative");
+
+        HSL::new(
+            Angle::new(hue.round() as u16),
+            (100.0 * saturation).round() as u8, // Ratio::from_f32(saturation)
+            (100.0 * luminosity).round() as u8,
+        )
     }
 
     fn to_hsla(self) -> HSLA {
-        HSLA::new(Angle::new(0), 0, 0, 0)
+        let HSL { h, s, l } = self.to_hsl();
+        HSLA::new(h, s, l, 255)
     }
 }
 
@@ -155,7 +219,14 @@ pub struct RGBA {
 
 impl fmt::Display for RGBA {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "rgba({}, {}, {}, {:.02})", self.r, self.g, self.b, self.a as f32 / 255.0)
+        write!(
+            f,
+            "rgba({}, {}, {}, {:.02})",
+            self.r,
+            self.g,
+            self.b,
+            self.a as f32 / 255.0
+        )
     }
 }
 
@@ -287,7 +358,14 @@ pub struct HSLA {
 
 impl fmt::Display for HSLA {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "hsla({}, {}%, {}%, {:.02})", self.h, self.s, self.l, self.a as f32 / 255.0)
+        write!(
+            f,
+            "hsla({}, {}%, {}%, {:.02})",
+            self.h,
+            self.s,
+            self.l,
+            self.a as f32 / 255.0
+        )
     }
 }
 
@@ -333,7 +411,7 @@ impl Color for HSLA {
 
 #[cfg(test)]
 mod css_color_tests {
-    use {Color, RGB, RGBA, HSL, HSLA, Angle};
+    use {Angle, Color, HSL, HSLA, RGB, RGBA};
 
     #[test]
     fn can_create_color_structs() {
@@ -400,9 +478,25 @@ mod css_color_tests {
 
         // FIXME: update these tests once HSL <-> RBG impl exists
         assert_eq!(hsl_color.to_rgb(), RGB { r: 0, g: 0, b: 0 });
-        assert_eq!(hsl_color.to_rgba(), RGBA { r: 0, g: 0, b: 0, a: 0 });
+        assert_eq!(
+            hsl_color.to_rgba(),
+            RGBA {
+                r: 0,
+                g: 0,
+                b: 0,
+                a: 0
+            }
+        );
         assert_eq!(hsla_color.to_rgb(), RGB { r: 0, g: 0, b: 0 });
-        assert_eq!(hsla_color.to_rgba(), RGBA { r: 0, g: 0, b: 0, a: 0 });
+        assert_eq!(
+            hsla_color.to_rgba(),
+            RGBA {
+                r: 0,
+                g: 0,
+                b: 0,
+                a: 0
+            }
+        );
     }
 
     #[test]
@@ -531,7 +625,10 @@ mod css_color_tests {
         assert_eq!(rgb_value, "RGB { r: 5, g: 10, b: 15 }");
         assert_eq!(rgba_value, "RGBA { r: 5, g: 10, b: 15, a: 255 }");
         assert_eq!(hsl_value, "HSL { h: Angle { degrees: 6 }, s: 93, l: 71 }");
-        assert_eq!(hsla_value, "HSLA { h: Angle { degrees: 6 }, s: 93, l: 71, a: 255 }");
+        assert_eq!(
+            hsla_value,
+            "HSLA { h: Angle { degrees: 6 }, s: 93, l: 71, a: 255 }"
+        );
     }
 
     #[test]
@@ -630,7 +727,7 @@ mod css_color_tests {
             h: Angle::new(6),
             s: 93,
             l: 71,
-            a: 255
+            a: 255,
         };
 
         assert_eq!("rgb(5, 10, 255)".to_owned(), format!("{}", rgb));
@@ -661,7 +758,7 @@ mod css_color_tests {
             h: Angle::new(6),
             s: 93,
             l: 71,
-            a: 128
+            a: 128,
         };
 
         assert_eq!(String::from("rgb(5, 10, 255)"), rgb.to_string());
