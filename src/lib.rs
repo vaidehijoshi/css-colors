@@ -119,13 +119,12 @@ impl Color for RGB {
     fn to_hsl(self) -> HSL {
         // To determine luminosity: `(min(RGB) + max(RGB)) / 2`
         // 1. convert the RGB values into a range from `0-1`
-        let values = [self.r / 255, self.g / 255, self.b / 255];
+        let values = [self.r as f32 / 255.0, self.g as f32 / 255.0, self.b as f32 / 255.0];
 
         // 2. find the max and min value of the converted values and sum them together and divide by 2
-        // let luminosity = (values.iter().max().unwrap() + values.iter().min().unwrap()) / 2;
-        let luminosity = values.iter().max().unwrap();
+        let luminosity = (values.iter().max().unwrap() + values.iter().min().unwrap()) / 2.0;
 
-        HSL::new(Angle::new(0), 0, *luminosity)
+        HSL::new(Angle::new(0), luminosity as u8, luminosity as u8)
     }
 
     fn to_hsla(self) -> HSLA {
