@@ -191,7 +191,7 @@ impl HSL {
     ///
     /// let salmon = HSL::new(Angle::new(6), 93, 71);
     ///
-    /// assert_eq!(salmon, HSL { h: Angle { degrees: 6 }, s: 93, l: 71 });
+    /// assert_eq!(salmon, HSL { h: Angle::new(6), s: 93, l: 71 });
     /// ```
     pub fn new(h: Angle, s: u8, l: u8) -> HSL {
         HSL { h, s, l }
@@ -251,7 +251,7 @@ impl HSLA {
     /// use {css_colors::HSLA, css_colors::Angle};
     /// let light_salmon = HSLA::new(Angle::new(6), 93, 71, 128);
     ///
-    /// assert_eq!(light_salmon, HSLA { h: Angle { degrees: 6 }, s: 93, l: 71, a: 128 });
+    /// assert_eq!(light_salmon, HSLA { h: Angle::new(6), s: 93, l: 71, a: 128 });
     /// ```
     pub fn new(h: Angle, s: u8, l: u8, a: u8) -> HSLA {
         HSLA { h, s, l, a }
@@ -278,7 +278,7 @@ impl Color for HSLA {
 /// A struct that represents the number of degrees in a circle.
 /// Legal values range from `0-359`. Anything else is unsused.
 pub struct Angle {
-    pub degrees: u16,
+    degrees: u16,
 }
 
 impl Angle {
