@@ -3,7 +3,6 @@ use std::fmt;
 pub mod angle;
 use angle::Angle;
 
-
 /// A trait that can be used for converting between different color models
 /// and performing various transformations on them.
 pub trait Color {
@@ -134,9 +133,14 @@ impl Color for RGB {
         RGBA::new(self.r, self.g, self.b, 255)
     }
 
+    /// The algorithm for converting from rgb to hsl format, which determines
+    /// the equivalent luminosity, saturation, and hue.
     fn to_hsl(self) -> HSL {
         let RGB { r, g, b } = self;
 
+        // If r, g, and b are the same, the color is a shade of grey (between
+        // black and white), with no hue or saturation. In that situation, there
+        // is no saturation or hue, and we can use any value to determine luminosity.
         if r == g && g == b {
             return HSL::new(
                 Angle::new(0),
@@ -147,8 +151,9 @@ impl Color for RGB {
             );
         }
 
-        // To determine luminosity: `(min(RGB) + max(RGB)) / 2`
-        // 1. convert the RGB values into a range from `0-1`
+        // Otherwise, to determine luminosity, we conver the RGB values into a
+        // percentage value, find the max and the min of those values, sum them
+        // together, and divide by 2.
 
         // let r = self.r.to_f32() if r is a Ratio
         let r = self.r as f32 / 255.0;
@@ -172,21 +177,26 @@ impl Color for RGB {
             b
         };
 
-        // 2. find the max and min value of the converted values and sum them together and divide by 2
         let luminosity = (max + min) / 2.0;
 
-        // If Luminance is smaller then 0.5, then Saturation = (max-min)/(max+min)
-        // If Luminance is bigger then 0.5. then Saturation = ( max-min)/(2.0-max-min)
-        let saturation = if luminosity < 0.5 {
+        // To find the saturation, we look at the max and min values.
+        // If the max and the min are the same, there is no saturation to the color.
+        // Otherwise, we calculate the saturation based on if the luminosity is
+        // greater than or less than 0.5.
+        let saturation = if max == min {
+            0.0
+        } else if luminosity < 0.5 {
             (max - min) / (max + min)
         } else {
             (max - min) / (2.0 - max - min)
         };
 
-        // If Red is max, then Hue = (G-B)/(max-min)
-        // If Green is max, then Hue = 2.0 + (B-R)/(max-min)
-        // If Blue is max, then Hue = 4.0 + (R-G)/(max-min)
-
+        // To calculate the hue, we look at which value (r, g, or b) is the max.
+        // Based on that, we subtract the difference between the other two values,
+        // adding 2.0 or 4.0 to account for the degrees on the color wheel, and
+        // then dividing that by the difference between the max and the min values.
+        // Finally, we multiply the hue value by 60 to convert it to degrees on
+        // the color wheel, accounting for negative hues as well.
         let mut hue = if max == r {
             (g - b) / (max - min)
         } else if max == g {
@@ -195,10 +205,9 @@ impl Color for RGB {
             4.0 + (r - g) / (max - min)
         };
 
-        // The Hue value you get needs to be multiplied by 60 to convert it to degrees on the color circle
-        // If Hue becomes negative you need to add 360 to, because a circle has 360 degrees.
         hue *= 60.0;
 
+        // TODO: handle when hue is negative (add 360 to make it positive).
         assert!(hue >= 0.0, "oops, forgot to handle negative");
 
         HSL::new(
