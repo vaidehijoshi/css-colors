@@ -53,14 +53,32 @@ pub trait Color {
     /// When converting from a color model that supports an alpha channel
     /// (e.g. RGBA), the alpha value will not be preserved.
     ///
-    /// # TODO: Examples
+    /// # Examples
+    /// ```
+    /// use css_colors::{Color, RGB, RGBA, HSL, angle::Angle as Angle};
+    ///
+    /// let tomato = RGB { r: 255, g: 99, b: 71 };
+    /// let opaque_tomato = RGBA { r: 255, g: 99, b: 71, a: 128 };
+    ///
+    /// assert_eq!(tomato.to_hsl(), HSL { h: Angle::new(9), s: 100, l: 64 });
+    /// assert_eq!(opaque_tomato.to_hsl(), HSL { h: Angle::new(9), s: 100, l: 64 });
+    /// ```
     fn to_hsl(self) -> HSL;
 
     /// Converts `self` into its HSLA representation.
     /// When converting from a color model that does not supports an alpha channel
     /// (e.g. RGB), it will be treated as fully opaque.
     ///
-    /// # TODO: Examples
+    /// # Examples
+    /// ```
+    /// use css_colors::{Color, RGB, RGBA, HSLA, angle::Angle as Angle};
+    ///
+    /// let tomato = RGB { r: 255, g: 99, b: 71 };
+    /// let opaque_tomato = RGBA { r: 255, g: 99, b: 71, a: 128 };
+    ///
+    /// assert_eq!(tomato.to_hsla(), HSLA { h: Angle::new(9), s: 100, l: 64, a: 255 });
+    /// assert_eq!(opaque_tomato.to_hsla(), HSLA { h: Angle::new(9), s: 100, l: 64, a: 128 });
+    /// ```
     fn to_hsla(self) -> HSLA;
 }
 
