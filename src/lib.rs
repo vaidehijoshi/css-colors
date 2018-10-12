@@ -287,11 +287,7 @@ impl Color for RGBA {
     }
 
     fn to_hsl(self) -> HSL {
-        // convert to rgb, and then to hsl
-        let converted_rgb = self.to_rgb();
-        let HSL { h, s, l } = converted_rgb.to_hsl();
-
-        HSL::new(h, s, l)
+        self.to_rgb().to_hsl()
     }
 
     fn to_hsla(self) -> HSLA {
