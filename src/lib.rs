@@ -260,11 +260,16 @@ impl Color for RGBA {
     }
 
     fn to_hsl(self) -> HSL {
-        HSL::new(Angle::new(0), 0, 0)
+        // convert to rgb, and then to hsl
+        let converted_rgb = self.to_rgb();
+        let HSL { h, s, l } = converted_rgb.to_hsl();
+
+        HSL::new(h, s, l)
     }
 
     fn to_hsla(self) -> HSLA {
-        HSLA::new(Angle::new(0), 0, 0, 0)
+        let HSL { h, s, l } = self.to_hsl();
+        HSLA::new(h, s, l, self.a)
     }
 }
 
@@ -510,7 +515,7 @@ mod css_color_tests {
             r: 172,
             g: 95,
             b: 82,
-            a: 128,
+            a: 255,
         };
         let hsl_rust = HSL {
             h: Angle::new(9),
@@ -521,11 +526,15 @@ mod css_color_tests {
             h: Angle::new(9),
             s: 35,
             l: 50,
-            a: 128,
+            a: 255,
         };
 
-        // FIXME: update these tests once HSL <-> RBG impl exists
+        // RGB to HSL & HSLA
         assert_eq!(rgb_rust.to_hsl(), hsl_rust);
+        assert_eq!(rgb_rust.to_hsla(), hsla_rust);
+
+        // RGBA to HSL & HSLA
+        assert_eq!(rgba_rust.to_hsl(), hsl_rust);
         assert_eq!(rgba_rust.to_hsla(), hsla_rust);
     }
 
