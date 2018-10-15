@@ -362,7 +362,16 @@ impl Color for HSL {
     }
 
     fn to_rgb(self) -> RGB {
-        unimplemented!("need to impl to_rgb for HSL")
+        let HSL { h, s, l } = self;
+        // If there is no saturation, the color is a shade of grey.
+        // We can If there is no Saturation it means that it’s a shade of grey. So in that case we just need to convert the Luminance and set R,G and B to that level. For example H = 0, S = 0 and L = 40%, we get 0.4 * 255 = 102, so R = 102, G = 102 and B = 102
+
+        if s == 0 {
+            let grey = (l * 255.0) / 100 as u8;
+            return RGB::new(grey, grey, grey);
+        }
+
+        RGB::new(0, 0, 0)
     }
 
     fn to_rgba(self) -> RGBA {
