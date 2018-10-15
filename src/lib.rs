@@ -3,7 +3,6 @@ use std::fmt;
 pub mod angle;
 use angle::Angle;
 
-
 /// A trait that can be used for converting between different color models
 /// and performing various transformations on them.
 pub trait Color {
@@ -48,6 +47,38 @@ pub trait Color {
     /// assert_eq!(tomato.to_rgba(), RGBA { r: 255, g: 99, b: 71, a: 255 });
     /// ```
     fn to_rgba(self) -> RGBA;
+
+    /// Converts `self` into its HSL representation.
+    /// When converting from a color model that supports an alpha channel
+    /// (e.g. RGBA), the alpha value will not be preserved.
+    ///
+    /// # Examples
+    /// ```
+    /// use css_colors::{Color, RGB, RGBA, HSL, angle::Angle as Angle};
+    ///
+    /// let tomato = RGB { r: 255, g: 99, b: 71 };
+    /// let opaque_tomato = RGBA { r: 255, g: 99, b: 71, a: 128 };
+    ///
+    /// assert_eq!(tomato.to_hsl(), HSL { h: Angle::new(9), s: 100, l: 64 });
+    /// assert_eq!(opaque_tomato.to_hsl(), HSL { h: Angle::new(9), s: 100, l: 64 });
+    /// ```
+    fn to_hsl(self) -> HSL;
+
+    /// Converts `self` into its HSLA representation.
+    /// When converting from a color model that does not supports an alpha channel
+    /// (e.g. RGB), it will be treated as fully opaque.
+    ///
+    /// # Examples
+    /// ```
+    /// use css_colors::{Color, RGB, RGBA, HSLA, angle::Angle as Angle};
+    ///
+    /// let tomato = RGB { r: 255, g: 99, b: 71 };
+    /// let opaque_tomato = RGBA { r: 255, g: 99, b: 71, a: 128 };
+    ///
+    /// assert_eq!(tomato.to_hsla(), HSLA { h: Angle::new(9), s: 100, l: 64, a: 255 });
+    /// assert_eq!(opaque_tomato.to_hsla(), HSLA { h: Angle::new(9), s: 100, l: 64, a: 128 });
+    /// ```
+    fn to_hsla(self) -> HSLA;
 }
 
 #[derive(Debug, Copy, Clone, PartialEq)]
@@ -101,6 +132,95 @@ impl Color for RGB {
     fn to_rgba(self) -> RGBA {
         RGBA::new(self.r, self.g, self.b, 255)
     }
+
+    /// The algorithm for converting from rgb to hsl format, which determines
+    /// the equivalent luminosity, saturation, and hue.
+    fn to_hsl(self) -> HSL {
+        let RGB { r, g, b } = self;
+
+        // If r, g, and b are the same, the color is a shade of grey (between
+        // black and white), with no hue or saturation. In that situation, there
+        // is no saturation or hue, and we can use any value to determine luminosity.
+        if r == g && g == b {
+            return HSL::new(
+                Angle::new(0),
+                0,
+                // TODO Ratio::from_u8(r)
+                // or just `r` (if `r` is a Ratio already)
+                (100.0 * (r as f32) / 255.0).round() as u8,
+            );
+        }
+
+        // Otherwise, to determine luminosity, we conver the RGB values into a
+        // percentage value, find the max and the min of those values, sum them
+        // together, and divide by 2.
+
+        // let r = self.r.to_f32() if r is a Ratio
+        let r = self.r as f32 / 255.0;
+        let g = self.g as f32 / 255.0;
+        let b = self.b as f32 / 255.0;
+
+        // let max = vec![r, g, b].iter().max().to_f32()
+        let max = if r > g && r > b {
+            r
+        } else if g > b {
+            g
+        } else {
+            b
+        };
+
+        let min = if r < g && r < b {
+            r
+        } else if g < b {
+            g
+        } else {
+            b
+        };
+
+        let luminosity = (max + min) / 2.0;
+
+        // To find the saturation, we look at the max and min values.
+        // If the max and the min are the same, there is no saturation to the color.
+        // Otherwise, we calculate the saturation based on if the luminosity is
+        // greater than or less than 0.5.
+        let saturation = if max == min {
+            0.0
+        } else if luminosity < 0.5 {
+            (max - min) / (max + min)
+        } else {
+            (max - min) / (2.0 - max - min)
+        };
+
+        // To calculate the hue, we look at which value (r, g, or b) is the max.
+        // Based on that, we subtract the difference between the other two values,
+        // adding 2.0 or 4.0 to account for the degrees on the color wheel, and
+        // then dividing that by the difference between the max and the min values.
+        // Finally, we multiply the hue value by 60 to convert it to degrees on
+        // the color wheel, accounting for negative hues as well.
+        let mut hue = if max == r {
+            (g - b) / (max - min)
+        } else if max == g {
+            2.0 + (b - r) / (max - min)
+        } else {
+            4.0 + (r - g) / (max - min)
+        };
+
+        hue *= 60.0;
+
+        // TODO: handle when hue is negative (add 360 to make it positive).
+        assert!(hue >= 0.0, "oops, forgot to handle negative");
+
+        HSL::new(
+            Angle::new(hue.round() as u16),
+            (100.0 * saturation).round() as u8, // Ratio::from_f32(saturation)
+            (100.0 * luminosity).round() as u8,
+        )
+    }
+
+    fn to_hsla(self) -> HSLA {
+        let HSL { h, s, l } = self.to_hsl();
+        HSLA::new(h, s, l, 255)
+    }
 }
 
 #[derive(Debug, Copy, Clone, PartialEq)]
@@ -126,7 +246,14 @@ pub struct RGBA {
 
 impl fmt::Display for RGBA {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "rgba({}, {}, {}, {:.02})", self.r, self.g, self.b, self.a as f32 / 255.0)
+        write!(
+            f,
+            "rgba({}, {}, {}, {:.02})",
+            self.r,
+            self.g,
+            self.b,
+            self.a as f32 / 255.0
+        )
     }
 }
 
@@ -157,6 +284,15 @@ impl Color for RGBA {
 
     fn to_rgba(self) -> RGBA {
         self
+    }
+
+    fn to_hsl(self) -> HSL {
+        self.to_rgb().to_hsl()
+    }
+
+    fn to_hsla(self) -> HSLA {
+        let HSL { h, s, l } = self.to_hsl();
+        HSLA::new(h, s, l, self.a)
     }
 }
 
@@ -215,6 +351,14 @@ impl Color for HSL {
         // FIXME: create impl, add tests for this
         RGBA::new(0, 0, 0, 0)
     }
+
+    fn to_hsl(self) -> HSL {
+        self
+    }
+
+    fn to_hsla(self) -> HSLA {
+        HSLA::new(self.h, self.s, self.l, 255)
+    }
 }
 
 #[derive(Debug, Copy, Clone, PartialEq)]
@@ -242,7 +386,14 @@ pub struct HSLA {
 
 impl fmt::Display for HSLA {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "hsla({}, {}%, {}%, {:.02})", self.h, self.s, self.l, self.a as f32 / 255.0)
+        write!(
+            f,
+            "hsla({}, {}%, {}%, {:.02})",
+            self.h,
+            self.s,
+            self.l,
+            self.a as f32 / 255.0
+        )
     }
 }
 
@@ -275,12 +426,20 @@ impl Color for HSLA {
         // FIXME: create impl, add tests for this
         RGBA::new(0, 0, 0, 0)
     }
+
+    fn to_hsl(self) -> HSL {
+        HSL::new(self.h, self.s, self.l)
+    }
+
+    fn to_hsla(self) -> HSLA {
+        self
+    }
 }
 
 
 #[cfg(test)]
 mod css_color_tests {
-    use {Color, RGB, RGBA, HSL, HSLA, Angle};
+    use {Angle, Color, HSL, HSLA, RGB, RGBA};
 
     #[test]
     fn can_create_color_structs() {
@@ -314,7 +473,7 @@ mod css_color_tests {
     }
 
     #[test]
-    fn can_convert_between_rgb_notations() {
+    fn can_convert_to_rgb_notations() {
         let rgb_color = RGB { r: 5, g: 10, b: 15 };
         let rgba_color = RGBA {
             r: 5,
@@ -347,9 +506,59 @@ mod css_color_tests {
 
         // FIXME: update these tests once HSL <-> RBG impl exists
         assert_eq!(hsl_color.to_rgb(), RGB { r: 0, g: 0, b: 0 });
-        assert_eq!(hsl_color.to_rgba(), RGBA { r: 0, g: 0, b: 0, a: 0 });
+        assert_eq!(
+            hsl_color.to_rgba(),
+            RGBA {
+                r: 0,
+                g: 0,
+                b: 0,
+                a: 0
+            }
+        );
         assert_eq!(hsla_color.to_rgb(), RGB { r: 0, g: 0, b: 0 });
-        assert_eq!(hsla_color.to_rgba(), RGBA { r: 0, g: 0, b: 0, a: 0 });
+        assert_eq!(
+            hsla_color.to_rgba(),
+            RGBA {
+                r: 0,
+                g: 0,
+                b: 0,
+                a: 0
+            }
+        );
+    }
+
+    #[test]
+    fn can_convert_to_hsl_notations() {
+        let rgb_rust = RGB {
+            r: 172,
+            g: 95,
+            b: 82,
+        };
+        let rgba_rust = RGBA {
+            r: 172,
+            g: 95,
+            b: 82,
+            a: 255,
+        };
+        let hsl_rust = HSL {
+            h: Angle::new(9),
+            s: 35,
+            l: 50,
+        };
+        let hsla_rust = HSLA {
+            h: Angle::new(9),
+            s: 35,
+            l: 50,
+            a: 255,
+        };
+
+        // RGB to HSL & HSLA
+        assert_eq!(rgb_rust.to_hsl(), hsl_rust);
+        assert_eq!(rgb_rust.to_hsla(), hsla_rust);
+
+        // RGBA to HSL & HSLA
+        assert_eq!(rgba_rust.to_hsl(), hsl_rust);
+        assert_eq!(rgba_rust.to_hsla(), hsla_rust);
     }
 
     #[test]
@@ -448,7 +657,10 @@ mod css_color_tests {
         assert_eq!(rgb_value, "RGB { r: 5, g: 10, b: 15 }");
         assert_eq!(rgba_value, "RGBA { r: 5, g: 10, b: 15, a: 255 }");
         assert_eq!(hsl_value, "HSL { h: Angle { degrees: 6 }, s: 93, l: 71 }");
-        assert_eq!(hsla_value, "HSLA { h: Angle { degrees: 6 }, s: 93, l: 71, a: 255 }");
+        assert_eq!(
+            hsla_value,
+            "HSLA { h: Angle { degrees: 6 }, s: 93, l: 71, a: 255 }"
+        );
     }
 
     #[test]
@@ -547,7 +759,7 @@ mod css_color_tests {
             h: Angle::new(6),
             s: 93,
             l: 71,
-            a: 255
+            a: 255,
         };
 
         assert_eq!("rgb(5, 10, 255)".to_owned(), format!("{}", rgb));
@@ -578,7 +790,7 @@ mod css_color_tests {
             h: Angle::new(6),
             s: 93,
             l: 71,
-            a: 128
+            a: 128,
         };
 
         assert_eq!(String::from("rgb(5, 10, 255)"), rgb.to_string());
