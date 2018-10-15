@@ -533,6 +533,34 @@ mod css_color_tests {
         // FIXME: update these tests once HSL <-> RBG impl exists (currently unimplemented!)
         // assert_eq!(hsl_color.to_rgba(), rgba_color);
         // assert_eq!(hsla_color.to_rgba(), rgba_color);
+
+        // RGB <-> RGBA
+        // assert_eq!(
+        //     rgb_color.to_rgba(),
+        //     RGBA {
+        //         r: Ratio::from_u8(5),
+        //         g: Ratio::from_u8(10),
+        //         b: Ratio::from_u8(15),
+        //         a: 255,
+        //     }
+        // );
+        // assert_eq!(
+        //     rgba_color.to_rgb(),
+        //     RGB {
+        //         r: Ratio::from_u8(5),
+        //         g: Ratio::from_u8(10),
+        //         b: Ratio::from_u8(15)
+        //     }
+        // );
+        //
+        // // HSL to RGB & RGBA
+        // assert_eq!(grey_hsl_color.to_rgb(), RGB { r: 64, g: 64, b: 64 });
+        // assert_eq!(hsl_color.to_rgb(), rgb_color);
+        // assert_eq!(hsl_color.to_rgba(), rgba_color);
+        //
+        // // HSLA to RGB & RGBA
+        // assert_eq!(hsla_color.to_rgb(), rgb_color);
+        // assert_eq!(hsla_color.to_rgba(), rgba_color);
     }
 
     #[test]
