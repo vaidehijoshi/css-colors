@@ -363,12 +363,13 @@ impl Color for HSL {
 
     fn to_rgb(self) -> RGB {
         let HSL { h, s, l } = self;
-        // If there is no saturation, the color is a shade of grey.
-        // We can If there is no Saturation it means that it’s a shade of grey. So in that case we just need to convert the Luminance and set R,G and B to that level. For example H = 0, S = 0 and L = 40%, we get 0.4 * 255 = 102, so R = 102, G = 102 and B = 102
 
+        // If there is no saturation, the color is a shade of grey.
+        // We can convert the luminosity and set r, g, and b to that value.
         if s == 0 {
-            let grey = (l * 255.0) / 100 as u8;
-            return RGB::new(grey, grey, grey);
+            let grey = (l as f32 * 255.0 / 100.0).round();
+
+            return RGB::new(grey as u8, grey as u8, grey as u8);
         }
 
         RGB::new(0, 0, 0)
@@ -539,35 +540,12 @@ mod css_color_tests {
 
         assert_eq!(rgb_color.to_rgba(), rgba_color);
 
-        // FIXME: update these tests once HSL <-> RBG impl exists (currently unimplemented!)
-        // assert_eq!(hsl_color.to_rgba(), rgba_color);
-        // assert_eq!(hsla_color.to_rgba(), rgba_color);
-
-        // RGB <-> RGBA
-        // assert_eq!(
-        //     rgb_color.to_rgba(),
-        //     RGBA {
-        //         r: Ratio::from_u8(5),
-        //         g: Ratio::from_u8(10),
-        //         b: Ratio::from_u8(15),
-        //         a: 255,
-        //     }
-        // );
-        // assert_eq!(
-        //     rgba_color.to_rgb(),
-        //     RGB {
-        //         r: Ratio::from_u8(5),
-        //         g: Ratio::from_u8(10),
-        //         b: Ratio::from_u8(15)
-        //     }
-        // );
-        //
-        // // HSL to RGB & RGBA
-        // assert_eq!(grey_hsl_color.to_rgb(), RGB { r: 64, g: 64, b: 64 });
+        // HSL to RGB & RGBA
+        assert_eq!(grey_hsl_color.to_rgb(), RGB { r: 64, g: 64, b: 64 });
         // assert_eq!(hsl_color.to_rgb(), rgb_color);
         // assert_eq!(hsl_color.to_rgba(), rgba_color);
-        //
-        // // HSLA to RGB & RGBA
+
+        // HSLA to RGB & RGBA
         // assert_eq!(hsla_color.to_rgb(), rgb_color);
         // assert_eq!(hsla_color.to_rgba(), rgba_color);
     }
