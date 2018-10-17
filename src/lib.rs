@@ -363,6 +363,7 @@ impl Color for HSL {
 
     fn to_rgb(self) -> RGB {
         let HSL { h, s, l } = self;
+        let temp_1;
 
         // If there is no saturation, the color is a shade of grey.
         // We can convert the luminosity and set r, g, and b to that value.
@@ -370,9 +371,25 @@ impl Color for HSL {
             let grey = (l as f32 * 255.0 / 100.0).round();
 
             return RGB::new(grey as u8, grey as u8, grey as u8);
+        } else if s < 50 {
+            temp_1 = l as f32 * (1.0 * s as f32);
+        } else {
+            temp_1 = ((l + s) - (l * s)) as f32;
         }
 
-        RGB::new(0, 0, 0)
+        // We need to create some temporary variables. The variables are used to store temporary values which makes the formulas easier to read.
+        //
+        // There are two formulas to choose from in the first step.
+        // If Luminance is smaller then 0.5 (50%) then temporary_1 = Luminance x (1.0+Saturation)
+        // If Luminance is equal or larger then 0.5 (50%) then temporary_1 = Luminance + Saturation – Luminance x Saturation
+        //
+        // Our Luminance is 28%, so we use the first formula.
+        // temporary_1 = 0.28 x (1.0 +0.67) = 0.28 x 1.67 = 0.4676
+
+
+
+
+        RGB::new(temp_1 as u8, temp_1 as u8, temp_1 as u8)
     }
 
     fn to_rgba(self) -> RGBA {
@@ -542,12 +559,12 @@ mod css_color_tests {
 
         // HSL to RGB & RGBA
         assert_eq!(grey_hsl_color.to_rgb(), RGB { r: 64, g: 64, b: 64 });
-        // assert_eq!(hsl_color.to_rgb(), rgb_color);
-        // assert_eq!(hsl_color.to_rgba(), rgba_color);
+        assert_eq!(hsl_color.to_rgb(), rgb_color);
+        assert_eq!(hsl_color.to_rgba(), rgba_color);
 
         // HSLA to RGB & RGBA
-        // assert_eq!(hsla_color.to_rgb(), rgb_color);
-        // assert_eq!(hsla_color.to_rgba(), rgba_color);
+        assert_eq!(hsla_color.to_rgb(), rgb_color);
+        assert_eq!(hsla_color.to_rgba(), rgba_color);
     }
 
     #[test]
