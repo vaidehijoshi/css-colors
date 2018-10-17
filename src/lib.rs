@@ -1,7 +1,9 @@
 use std::fmt;
 
 pub mod angle;
+pub mod ratio;
 use angle::Angle;
+use ratio::Ratio;
 
 /// A trait that can be used for converting between different color models
 /// and performing various transformations on them.
