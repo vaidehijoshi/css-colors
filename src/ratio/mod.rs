@@ -1,3 +1,4 @@
+use std::fmt;
 use std::ops;
 
 #[derive(Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq)]
@@ -33,6 +34,12 @@ impl Ratio {
 
     pub fn as_f32(self) -> f32 {
         self.0 as f32 / 255.0
+    }
+}
+
+impl fmt::Display for Ratio {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{}", self.0)
     }
 }
 
