@@ -81,6 +81,10 @@ pub trait Color {
     /// assert_eq!(opaque_tomato.to_hsla(), HSLA::new(9, 100, 64, 128));
     /// ```
     fn to_hsla(self) -> HSLA;
+
+    fn saturate(self, amount: u8) -> Self;
+
+    fn fadein(self, amount: u8) -> Self;
 }
 
 #[derive(Debug, Copy, Clone, PartialEq)]
@@ -232,6 +236,14 @@ impl Color for RGB {
 
         HSLA::new(h.degrees(), s.as_percentage(), l.as_percentage(), 255)
     }
+
+    fn saturate(self, amount: u8) -> Self {
+        self.to_hsl().saturate(amount).to_rgb()
+    }
+
+    fn fadein(self, amount: u8) -> Self {
+        self
+    }
 }
 
 #[derive(Debug, Copy, Clone, PartialEq)]
@@ -310,6 +322,21 @@ impl Color for RGBA {
     fn to_hsla(self) -> HSLA {
         let HSL { h, s, l } = self.to_hsl();
         HSLA::new(h.degrees(), s.as_percentage(), l.as_percentage(), self.a)
+    }
+
+    fn saturate(self, amount: u8) -> Self {
+        self.to_hsla().saturate(amount).to_rgba()
+    }
+
+    fn fadein(self, amount: u8) -> Self {
+        let RGBA { r, g, b, a } = self;
+
+        RGBA {
+            r,
+            g,
+            b,
+            a: a + amount,
+        }
     }
 }
 
@@ -427,6 +454,20 @@ impl Color for HSL {
             255,
         )
     }
+
+    fn saturate(self, amount: u8) -> Self {
+        let HSL { h, s, l } = self;
+
+        HSL {
+            h,
+            s: s + amount,
+            l,
+        }
+    }
+
+    fn fadein(self, amount: u8) -> Self {
+        self
+    }
 }
 
 // A function to convert an HSL value (either h, s, or l) into the equivalent, valid RGB value.
@@ -525,6 +566,28 @@ impl Color for HSLA {
 
     fn to_hsla(self) -> HSLA {
         self
+    }
+
+    fn saturate(self, amount: u8) -> Self {
+        let HSLA { h, s, l, a } = self;
+
+        HSLA {
+            h,
+            s: s + amount,
+            l,
+            a,
+        }
+    }
+
+    fn fadein(self, amount: u8) -> Self {
+        let HSLA { h, s, l, a } = self;
+
+        HSLA {
+            h,
+            s,
+            l,
+            a: a + amount,
+        }
     }
 }
 
