@@ -146,10 +146,10 @@ impl Color for RGB {
         if r == g && g == b {
             return HSL::new(
                 Angle::new(0),
-                0,
+                Ratio::from_percentage(0),
                 // TODO Ratio::from_u8(r)
                 // or just `r` (if `r` is a Ratio already)
-                (100.0 * (r as f32) / 255.0).round() as u8,
+                Ratio::from_u8(r)
             );
         }
 
@@ -214,8 +214,8 @@ impl Color for RGB {
 
         HSL::new(
             Angle::new(hue.round() as u16),
-            (100.0 * saturation).round() as u8, // Ratio::from_f32(saturation)
-            (100.0 * luminosity).round() as u8,
+            Ratio::from_f32(saturation), // (100.0 * saturation).round() as u8,
+            Ratio::from_f32(saturation), // (100.0 * luminosity).round() as u8,
         )
     }
 
@@ -311,10 +311,10 @@ pub struct HSL {
     pub h: Angle,
 
     // saturation
-    pub s: u8,
+    pub s: Ratio,
 
     // luminosity
-    pub l: u8,
+    pub l: Ratio,
 }
 
 impl fmt::Display for HSL {
@@ -334,7 +334,7 @@ impl HSL {
     ///
     /// assert_eq!(salmon, HSL { h: Angle::new(6), s: 93, l: 71 });
     /// ```
-    pub fn new(h: Angle, s: u8, l: u8) -> HSL {
+    pub fn new(h: Angle, s: Ratio, l: Ratio) -> HSL {
         HSL { h, s, l }
     }
 }
@@ -377,10 +377,10 @@ pub struct HSLA {
     pub h: Angle,
 
     // saturation
-    pub s: u8,
+    pub s: Ratio,
 
     // luminosity
-    pub l: u8,
+    pub l: Ratio,
 
     // alpha
     pub a: u8,
@@ -409,7 +409,7 @@ impl HSLA {
     ///
     /// assert_eq!(light_salmon, HSLA { h: Angle::new(6), s: 93, l: 71, a: 128 });
     /// ```
-    pub fn new(h: Angle, s: u8, l: u8, a: u8) -> HSLA {
+    pub fn new(h: Angle, s: Ratio, l: Ratio, a: u8) -> HSLA {
         HSLA { h, s, l, a }
     }
 }
@@ -441,7 +441,7 @@ impl Color for HSLA {
 
 #[cfg(test)]
 mod css_color_tests {
-    use {Angle, Color, HSL, HSLA, RGB, RGBA};
+    use {Angle, Ratio, Color, HSL, HSLA, RGB, RGBA};
 
     #[test]
     fn can_create_color_structs() {
@@ -456,19 +456,19 @@ mod css_color_tests {
             }
         );
         assert_eq!(
-            HSL::new(Angle::new(6), 93, 71),
+            HSL::new(Angle::new(6), Ratio::from_percentage(93), Ratio::from_percentage(71)),
             HSL {
                 h: Angle::new(6),
-                s: 93,
-                l: 71
+                s: Ratio::from_percentage(93),
+                l: Ratio::from_percentage(71)
             }
         );
         assert_eq!(
-            HSLA::new(Angle::new(6), 93, 71, 255),
+            HSLA::new(Angle::new(6), Ratio::from_percentage(93), Ratio::from_percentage(71), 255),
             HSLA {
                 h: Angle::new(6),
-                s: 93,
-                l: 71,
+                s: Ratio::from_percentage(93),
+                l: Ratio::from_percentage(71),
                 a: 255
             }
         );
@@ -485,13 +485,13 @@ mod css_color_tests {
         };
         let hsl_color = HSL {
             h: Angle::new(6),
-            s: 93,
-            l: 71,
+            s: Ratio::from_percentage(93),
+            l: Ratio::from_percentage(71)
         };
         let hsla_color = HSLA {
             h: Angle::new(6),
-            s: 93,
-            l: 71,
+            s: Ratio::from_percentage(93),
+            l: Ratio::from_percentage(71),
             a: 255,
         };
 
@@ -544,13 +544,14 @@ mod css_color_tests {
         };
         let hsl_rust = HSL {
             h: Angle::new(9),
-            s: 35,
-            l: 50,
+            s: Ratio::from_percentage(35),
+            l: Ratio::from_percentage(50),
         };
+
         let hsla_rust = HSLA {
             h: Angle::new(9),
-            s: 35,
-            l: 50,
+            s: Ratio::from_percentage(35),
+            l: Ratio::from_percentage(50),
             a: 255,
         };
 
@@ -574,13 +575,13 @@ mod css_color_tests {
         };
         let hsl_color = HSL {
             h: Angle::new(6),
-            s: 93,
-            l: 71,
+            s: Ratio::from_percentage(93),
+            l: Ratio::from_percentage(71),
         };
         let hsla_color = HSLA {
             h: Angle::new(6),
-            s: 93,
-            l: 71,
+            s: Ratio::from_percentage(93),
+            l: Ratio::from_percentage(71),
             a: 255,
         };
 
@@ -608,14 +609,14 @@ mod css_color_tests {
         let copied_rgba_color = rgba_color;
         let hsl_color = HSL {
             h: Angle::new(6),
-            s: 93,
-            l: 71,
+            s: Ratio::from_percentage(93),
+            l: Ratio::from_percentage(71),
         };
         let copied_hsl_color = hsl_color;
         let hsla_color = HSLA {
             h: Angle::new(6),
-            s: 93,
-            l: 71,
+            s: Ratio::from_percentage(93),
+            l: Ratio::from_percentage(71),
             a: 255,
         };
         let copied_hsla_color = hsla_color;
@@ -642,16 +643,16 @@ mod css_color_tests {
             "{:?}",
             HSL {
                 h: Angle::new(6),
-                s: 93,
-                l: 71,
+                s: Ratio::from_percentage(93),
+                l: Ratio::from_percentage(71),
             }
         );
         let hsla_value = format!(
             "{:?}",
             HSLA {
                 h: Angle::new(6),
-                s: 93,
-                l: 71,
+                s: Ratio::from_percentage(93),
+                l: Ratio::from_percentage(71),
                 a: 255
             }
         );
@@ -680,13 +681,13 @@ mod css_color_tests {
         };
         let hsl = HSL {
             h: Angle::new(6),
-            s: 93,
-            l: 71,
+            s: Ratio::from_percentage(93),
+            l: Ratio::from_percentage(71),
         };
         let hsla = HSLA {
             h: Angle::new(6),
-            s: 93,
-            l: 71,
+            s: Ratio::from_percentage(93),
+            l: Ratio::from_percentage(71),
             a: 255,
         };
 
@@ -719,16 +720,16 @@ mod css_color_tests {
             "{}",
             HSL {
                 h: Angle::new(6),
-                s: 93,
-                l: 71,
+                s: Ratio::from_percentage(93),
+                l: Ratio::from_percentage(71),
             }
         );
         let printed_hsla = format!(
             "{}",
             HSLA {
                 h: Angle::new(6),
-                s: 93,
-                l: 71,
+                s: Ratio::from_percentage(93),
+                l: Ratio::from_percentage(71),
                 a: 255,
             }
         );
@@ -754,13 +755,13 @@ mod css_color_tests {
         };
         let hsl = HSL {
             h: Angle::new(6),
-            s: 93,
-            l: 71,
+            s: Ratio::from_percentage(93),
+            l: Ratio::from_percentage(71),
         };
         let hsla = HSLA {
             h: Angle::new(6),
-            s: 93,
-            l: 71,
+            s: Ratio::from_percentage(93),
+            l: Ratio::from_percentage(71),
             a: 255,
         };
 
@@ -785,13 +786,13 @@ mod css_color_tests {
         };
         let hsl = HSL {
             h: Angle::new(6),
-            s: 93,
-            l: 71,
+            s: Ratio::from_percentage(93),
+            l: Ratio::from_percentage(71),
         };
         let hsla = HSLA {
             h: Angle::new(6),
-            s: 93,
-            l: 71,
+            s: Ratio::from_percentage(93),
+            l: Ratio::from_percentage(71),
             a: 128,
         };
 
