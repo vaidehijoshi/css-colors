@@ -39,7 +39,7 @@ impl Ratio {
 
 impl fmt::Display for Ratio {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}", self.0)
+        write!(f, "{}%", self.as_percentage())
     }
 }
 
@@ -77,7 +77,7 @@ impl ops::Div for Ratio {
 
 #[cfg(test)]
 mod tests {
-    use {Ratio};
+    use Ratio;
 
     #[test]
     #[should_panic]
@@ -93,9 +93,18 @@ mod tests {
 
     #[test]
     fn handles_overflow_percentage() {
-        assert_eq!(Ratio::from_percentage(50) + Ratio::from_percentage(55), None);
-        assert_eq!(Ratio::from_percentage(50) - Ratio::from_percentage(55), None);
-        assert_eq!(Ratio::from_percentage(50) * Ratio::from_percentage(55), None);
+        assert_eq!(
+            Ratio::from_percentage(50) + Ratio::from_percentage(55),
+            None
+        );
+        assert_eq!(
+            Ratio::from_percentage(50) - Ratio::from_percentage(55),
+            None
+        );
+        assert_eq!(
+            Ratio::from_percentage(50) * Ratio::from_percentage(55),
+            None
+        );
     }
 
     #[test]
