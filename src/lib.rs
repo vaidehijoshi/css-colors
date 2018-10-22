@@ -56,13 +56,13 @@ pub trait Color {
     ///
     /// # Examples
     /// ```
-    /// use css_colors::{Color, RGB, RGBA, HSL, angle::Angle as Angle};
+    /// use css_colors::{Color, RGB, RGBA, HSL, angle::Angle as Angle, ratio::Ratio as Ratio};
     ///
     /// let tomato = RGB { r: 255, g: 99, b: 71 };
     /// let opaque_tomato = RGBA { r: 255, g: 99, b: 71, a: 128 };
     ///
-    /// assert_eq!(tomato.to_hsl(), HSL { h: Angle::new(9), s: 100, l: 64 });
-    /// assert_eq!(opaque_tomato.to_hsl(), HSL { h: Angle::new(9), s: 100, l: 64 });
+    /// assert_eq!(tomato.to_hsl(), HSL { h: Angle::new(9), s: Ratio::from_percentage(100), l: Ratio::from_percentage(64) });
+    /// assert_eq!(opaque_tomato.to_hsl(), HSL { h: Angle::new(9), s: Ratio::from_percentage(100), l: Ratio::from_percentage(64) });
     /// ```
     fn to_hsl(self) -> HSL;
 
@@ -72,13 +72,13 @@ pub trait Color {
     ///
     /// # Examples
     /// ```
-    /// use css_colors::{Color, RGB, RGBA, HSLA, angle::Angle as Angle};
+    /// use css_colors::{Color, RGB, RGBA, HSLA, angle::Angle as Angle, ratio::Ratio as Ratio};
     ///
     /// let tomato = RGB { r: 255, g: 99, b: 71 };
     /// let opaque_tomato = RGBA { r: 255, g: 99, b: 71, a: 128 };
     ///
-    /// assert_eq!(tomato.to_hsla(), HSLA { h: Angle::new(9), s: 100, l: 64, a: 255 });
-    /// assert_eq!(opaque_tomato.to_hsla(), HSLA { h: Angle::new(9), s: 100, l: 64, a: 128 });
+    /// assert_eq!(tomato.to_hsla(), HSLA { h: Angle::new(9), s: Ratio::from_percentage(100), l: Ratio::from_percentage(64), a: 255 });
+    /// assert_eq!(opaque_tomato.to_hsla(), HSLA { h: Angle::new(9), s: Ratio::from_percentage(100), l: Ratio::from_percentage(64), a: 128 });
     /// ```
     fn to_hsla(self) -> HSLA;
 }
@@ -145,11 +145,9 @@ impl Color for RGB {
         // is no saturation or hue, and we can use any value to determine luminosity.
         if r == g && g == b {
             return HSL::new(
-                Angle::new(0),
-                Ratio::from_percentage(0),
-                // TODO Ratio::from_u8(r)
-                // or just `r` (if `r` is a Ratio already)
-                Ratio::from_u8(r),
+                Angle::new(0),             // h
+                Ratio::from_percentage(0), // s
+                Ratio::from_u8(r),         // l
             );
         }
 
@@ -213,9 +211,9 @@ impl Color for RGB {
         assert!(hue >= 0.0, "oops, forgot to handle negative");
 
         HSL::new(
-            Angle::new(hue.round() as u16),
-            Ratio::from_f32(saturation), // (100.0 * saturation).round() as u8,
-            Ratio::from_f32(luminosity), // (100.0 * luminosity).round() as u8,
+            Angle::new(hue.round() as u16), // h
+            Ratio::from_f32(saturation),    // s
+            Ratio::from_f32(luminosity),    // l
         )
     }
 
@@ -328,11 +326,11 @@ impl HSL {
     ///
     /// # Example
     /// ```
-    /// use {css_colors::HSL, css_colors::angle::Angle as Angle};
+    /// use {css_colors::HSL, css_colors::angle::Angle as Angle, css_colors::ratio::Ratio as Ratio};
     ///
-    /// let salmon = HSL::new(Angle::new(6), 93, 71);
+    /// let salmon = HSL::new(Angle::new(6), Ratio::from_percentage(93), Ratio::from_percentage(71));
     ///
-    /// assert_eq!(salmon, HSL { h: Angle::new(6), s: 93, l: 71 });
+    /// assert_eq!(salmon, HSL { h: Angle::new(6), s: Ratio::from_percentage(93), l: Ratio::from_percentage(71) });
     /// ```
     pub fn new(h: Angle, s: Ratio, l: Ratio) -> HSL {
         HSL { h, s, l }
@@ -404,10 +402,10 @@ impl HSLA {
     ///
     /// # Example
     /// ```
-    /// use {css_colors::HSLA, css_colors::angle::Angle as Angle};
-    /// let light_salmon = HSLA::new(Angle::new(6), 93, 71, 128);
+    /// use {css_colors::HSLA, css_colors::angle::Angle as Angle, css_colors::ratio::Ratio as Ratio};
+    /// let light_salmon = HSLA::new(Angle::new(6), Ratio::from_percentage(93), Ratio::from_percentage(71), 128);
     ///
-    /// assert_eq!(light_salmon, HSLA { h: Angle::new(6), s: 93, l: 71, a: 128 });
+    /// assert_eq!(light_salmon, HSLA { h: Angle::new(6), s: Ratio::from_percentage(93), l: Ratio::from_percentage(71), a: 128 });
     /// ```
     pub fn new(h: Angle, s: Ratio, l: Ratio, a: u8) -> HSLA {
         HSLA { h, s, l, a }

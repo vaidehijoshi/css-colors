@@ -119,12 +119,9 @@ mod tests {
         let a = Ratio::from_percentage(55);
         let b = Ratio::from_percentage(45);
         let c = Ratio::from_percentage(10);
-        // let d = Ratio::from_percentage(5);
 
         assert_eq!((a + b).unwrap(), Ratio::from_percentage(100));
         assert_eq!((b - c).unwrap(), Ratio::from_percentage(35));
-        // FIXME: need to figure out why this dosen't work as expected.
-        // assert_eq!((a / d).unwrap(), Ratio::from_percentage(11));
     }
 
     #[test]
