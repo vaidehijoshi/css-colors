@@ -12,13 +12,13 @@ pub trait Color {
     ///
     /// # Examples
     /// ```
-    /// use css_colors::{Color, RGB, RGBA};
+    /// use css_colors::{Color, RGB, RGBA, ratio::Ratio as Ratio};
     ///
-    /// let salmon = RGB { r: 250, g: 128, b: 114 };
-    /// let opaque_salmon = RGBA { r: 250, g: 128, b: 114, a: 128 };
+    /// let salmon = RGB { r: Ratio::from_u8(250), g: Ratio::from_u8(128), b: Ratio::from_u8(114) };
+    /// let opaque_salmon = RGBA { r: Ratio::from_u8(250), g: Ratio::from_u8(128), b: Ratio::from_u8(114), a: 128 };
     ///
-    /// assert_eq!(salmon.to_css(), "rgb(250, 128, 114)");
-    /// assert_eq!(opaque_salmon.to_css(), "rgba(250, 128, 114, 0.50)");
+    /// assert_eq!(salmon.to_css(), "rgb(98%, 50%, 45%)");
+    /// assert_eq!(opaque_salmon.to_css(), "rgba(98%, 50%, 45%, 0.50)");
     /// ```
     fn to_css(self) -> String;
 
@@ -28,11 +28,11 @@ pub trait Color {
     ///
     /// # Examples
     /// ```
-    /// use css_colors::{Color, RGB, RGBA};
+    /// use css_colors::{Color, RGB, RGBA, ratio::Ratio as Ratio};
     ///
-    /// let opaque_tomato = RGBA { r: 255, g: 99, b: 71, a: 128 };
+    /// let opaque_tomato = RGBA { r: Ratio::from_u8(255), g: Ratio::from_u8(99), b: Ratio::from_u8(71), a: 128 };
     ///
-    /// assert_eq!(opaque_tomato.to_rgb(), RGB { r: 255, g: 99, b: 71 });
+    /// assert_eq!(opaque_tomato.to_rgb(), RGB { r: Ratio::from_u8(255), g: Ratio::from_u8(99), b: Ratio::from_u8(71) });
     /// ```
     fn to_rgb(self) -> RGB;
 
@@ -42,11 +42,11 @@ pub trait Color {
     ///
     /// # Examples
     /// ```
-    /// use css_colors::{Color, RGB, RGBA};
+    /// use css_colors::{Color, RGB, RGBA, ratio::Ratio as Ratio};
     ///
-    /// let tomato = RGB { r: 255, g: 99, b: 71 };
+    /// let tomato = RGB { r: Ratio::from_u8(255), g: Ratio::from_u8(99), b: Ratio::from_u8(71) };
     ///
-    /// assert_eq!(tomato.to_rgba(), RGBA { r: 255, g: 99, b: 71, a: 255 });
+    /// assert_eq!(tomato.to_rgba(), RGBA { r: Ratio::from_u8(255), g: Ratio::from_u8(99), b: Ratio::from_u8(71), a: 255 });
     /// ```
     fn to_rgba(self) -> RGBA;
 
@@ -58,8 +58,8 @@ pub trait Color {
     /// ```
     /// use css_colors::{Color, RGB, RGBA, HSL, angle::Angle as Angle, ratio::Ratio as Ratio};
     ///
-    /// let tomato = RGB { r: 255, g: 99, b: 71 };
-    /// let opaque_tomato = RGBA { r: 255, g: 99, b: 71, a: 128 };
+    /// let tomato = RGB { r: Ratio::from_u8(255), g: Ratio::from_u8(99), b: Ratio::from_u8(71) };
+    /// let opaque_tomato = RGBA { r: Ratio::from_u8(255), g: Ratio::from_u8(99), b: Ratio::from_u8(71), a: 128 };
     ///
     /// assert_eq!(tomato.to_hsl(), HSL { h: Angle::new(9), s: Ratio::from_percentage(100), l: Ratio::from_percentage(64) });
     /// assert_eq!(opaque_tomato.to_hsl(), HSL { h: Angle::new(9), s: Ratio::from_percentage(100), l: Ratio::from_percentage(64) });
@@ -74,8 +74,8 @@ pub trait Color {
     /// ```
     /// use css_colors::{Color, RGB, RGBA, HSLA, angle::Angle as Angle, ratio::Ratio as Ratio};
     ///
-    /// let tomato = RGB { r: 255, g: 99, b: 71 };
-    /// let opaque_tomato = RGBA { r: 255, g: 99, b: 71, a: 128 };
+    /// let tomato = RGB { r: Ratio::from_u8(255), g: Ratio::from_u8(99), b: Ratio::from_u8(71) };
+    /// let opaque_tomato = RGBA { r: Ratio::from_u8(255), g: Ratio::from_u8(99), b: Ratio::from_u8(71), a: 128 };
     ///
     /// assert_eq!(tomato.to_hsla(), HSLA { h: Angle::new(9), s: Ratio::from_percentage(100), l: Ratio::from_percentage(64), a: 255 });
     /// assert_eq!(opaque_tomato.to_hsla(), HSLA { h: Angle::new(9), s: Ratio::from_percentage(100), l: Ratio::from_percentage(64), a: 128 });
@@ -91,13 +91,13 @@ pub trait Color {
 /// For more, see the [CSS Color Spec](https://www.w3.org/TR/2018/REC-css-color-3-20180619/#rgb-color).
 pub struct RGB {
     // red
-    pub r: u8,
+    pub r: Ratio,
 
     // green
-    pub g: u8,
+    pub g: Ratio,
 
     // blue
-    pub b: u8,
+    pub b: Ratio,
 }
 
 impl fmt::Display for RGB {
@@ -111,13 +111,13 @@ impl RGB {
     ///
     /// # Example
     /// ```
-    /// use css_colors::RGB;
+    /// use {css_colors::RGB, css_colors::ratio::Ratio as Ratio};
     ///
-    /// let salmon = RGB::new(250, 128, 114);
+    /// let salmon = RGB::new(Ratio::from_u8(250), Ratio::from_u8(128), Ratio::from_u8(114));
     ///
-    /// assert_eq!(salmon, RGB { r: 250, g: 128, b: 114 });
+    /// assert_eq!(salmon, RGB { r: Ratio::from_u8(250), g: Ratio::from_u8(128), b: Ratio::from_u8(114) });
     /// ```
-    pub fn new(r: u8, g: u8, b: u8) -> RGB {
+    pub fn new(r: Ratio, g: Ratio, b: Ratio) -> RGB {
         RGB { r, g, b }
     }
 }
@@ -147,7 +147,7 @@ impl Color for RGB {
             return HSL::new(
                 Angle::new(0),             // h
                 Ratio::from_percentage(0), // s
-                Ratio::from_u8(r),         // l
+                r,                         // l
             );
         }
 
@@ -155,10 +155,10 @@ impl Color for RGB {
         // percentage value, find the max and the min of those values, sum them
         // together, and divide by 2.
 
-        // let r = self.r.to_f32() if r is a Ratio
-        let r = self.r as f32 / 255.0;
-        let g = self.g as f32 / 255.0;
-        let b = self.b as f32 / 255.0;
+        // TODO: delete me let r = self.r.to_f32() if r is a Ratio
+        let r = Ratio::as_f32(self.r);
+        let g = Ratio::as_f32(self.g);
+        let b = Ratio::as_f32(self.b);
 
         // let max = vec![r, g, b].iter().max().to_f32()
         let max = if r > g && r > b {
@@ -232,13 +232,13 @@ impl Color for RGB {
 /// For more, see the [CSS Color Spec](https://www.w3.org/TR/2018/REC-css-color-3-20180619/#rgba-color).
 pub struct RGBA {
     // red
-    pub r: u8,
+    pub r: Ratio,
 
     // green
-    pub g: u8,
+    pub g: Ratio,
 
     // blue
-    pub b: u8,
+    pub b: Ratio,
 
     // alpha
     pub a: u8,
@@ -262,13 +262,13 @@ impl RGBA {
     ///
     /// # Example
     /// ```
-    /// use css_colors::RGBA;
+    /// use {css_colors::RGBA, css_colors::ratio::Ratio as Ratio};
     ///
-    /// let light_salmon = RGBA::new(250, 128, 114, 128);
+    /// let light_salmon = RGBA::new(Ratio::from_u8(250), Ratio::from_u8(128), Ratio::from_u8(114), 128);
     ///
-    /// assert_eq!(light_salmon, RGBA { r: 250, g: 128, b: 114, a: 128 });
+    /// assert_eq!(light_salmon, RGBA { r: Ratio::from_u8(250), g: Ratio::from_u8(128), b: Ratio::from_u8(114), a: 128 });
     /// ```
-    pub fn new(r: u8, g: u8, b: u8, a: u8) -> RGBA {
+    pub fn new(r: Ratio, g: Ratio, b: Ratio, a: u8) -> RGBA {
         RGBA { r, g, b, a }
     }
 }
@@ -344,12 +344,12 @@ impl Color for HSL {
 
     fn to_rgb(self) -> RGB {
         // FIXME: create impl, add tests for this
-        RGB::new(0, 0, 0)
+        RGB::new(Ratio::from_u8(0), Ratio::from_u8(0), Ratio::from_u8(0))
     }
 
     fn to_rgba(self) -> RGBA {
         // FIXME: create impl, add tests for this
-        RGBA::new(0, 0, 0, 0)
+        RGBA::new(Ratio::from_u8(0), Ratio::from_u8(0), Ratio::from_u8(0), 0)
     }
 
     fn to_hsl(self) -> HSL {
@@ -419,12 +419,12 @@ impl Color for HSLA {
 
     fn to_rgb(self) -> RGB {
         // FIXME: create impl, add tests for this
-        RGB::new(0, 0, 0)
+        RGB::new(Ratio::from_u8(0), Ratio::from_u8(0), Ratio::from_u8(0))
     }
 
     fn to_rgba(self) -> RGBA {
         // FIXME: create impl, add tests for this
-        RGBA::new(0, 0, 0, 0)
+        RGBA::new(Ratio::from_u8(0), Ratio::from_u8(0), Ratio::from_u8(0), 0)
     }
 
     fn to_hsl(self) -> HSL {
@@ -442,13 +442,25 @@ mod css_color_tests {
 
     #[test]
     fn can_create_color_structs() {
-        assert_eq!(RGB::new(5, 10, 15), RGB { r: 5, g: 10, b: 15 });
         assert_eq!(
-            RGBA::new(5, 10, 15, 255),
+            RGB::new(Ratio::from_u8(5), Ratio::from_u8(10), Ratio::from_u8(15)),
+            RGB {
+                r: Ratio::from_u8(5),
+                g: Ratio::from_u8(10),
+                b: Ratio::from_u8(15)
+            }
+        );
+        assert_eq!(
+            RGBA::new(
+                Ratio::from_u8(5),
+                Ratio::from_u8(10),
+                Ratio::from_u8(15),
+                255
+            ),
             RGBA {
-                r: 5,
-                g: 10,
-                b: 15,
+                r: Ratio::from_u8(5),
+                g: Ratio::from_u8(10),
+                b: Ratio::from_u8(15),
                 a: 255
             }
         );
@@ -482,11 +494,15 @@ mod css_color_tests {
 
     #[test]
     fn can_convert_to_rgb_notations() {
-        let rgb_color = RGB { r: 5, g: 10, b: 15 };
+        let rgb_color = RGB {
+            r: Ratio::from_u8(5),
+            g: Ratio::from_u8(10),
+            b: Ratio::from_u8(15),
+        };
         let rgba_color = RGBA {
-            r: 5,
-            g: 10,
-            b: 15,
+            r: Ratio::from_u8(5),
+            g: Ratio::from_u8(10),
+            b: Ratio::from_u8(15),
             a: 255,
         };
         let hsl_color = HSL {
@@ -504,32 +520,53 @@ mod css_color_tests {
         assert_eq!(
             rgb_color.to_rgba(),
             RGBA {
-                r: 5,
-                g: 10,
-                b: 15,
+                r: Ratio::from_u8(5),
+                g: Ratio::from_u8(10),
+                b: Ratio::from_u8(15),
                 a: 255,
             }
         );
-        assert_eq!(rgba_color.to_rgb(), RGB { r: 5, g: 10, b: 15 });
+        assert_eq!(
+            rgba_color.to_rgb(),
+            RGB {
+                r: Ratio::from_u8(5),
+                g: Ratio::from_u8(10),
+                b: Ratio::from_u8(15)
+            }
+        );
 
         // FIXME: update these tests once HSL <-> RBG impl exists
-        assert_eq!(hsl_color.to_rgb(), RGB { r: 0, g: 0, b: 0 });
+        assert_eq!(
+            hsl_color.to_rgb(),
+            RGB {
+                r: Ratio::from_u8(0),
+                g: Ratio::from_u8(0),
+                b: Ratio::from_u8(0)
+            }
+        );
         assert_eq!(
             hsl_color.to_rgba(),
             RGBA {
-                r: 0,
-                g: 0,
-                b: 0,
+                r: Ratio::from_u8(0),
+                g: Ratio::from_u8(0),
+                b: Ratio::from_u8(0),
                 a: 0
             }
         );
-        assert_eq!(hsla_color.to_rgb(), RGB { r: 0, g: 0, b: 0 });
+        assert_eq!(
+            hsla_color.to_rgb(),
+            RGB {
+                r: Ratio::from_u8(0),
+                g: Ratio::from_u8(0),
+                b: Ratio::from_u8(0)
+            }
+        );
         assert_eq!(
             hsla_color.to_rgba(),
             RGBA {
-                r: 0,
-                g: 0,
-                b: 0,
+                r: Ratio::from_u8(0),
+                g: Ratio::from_u8(0),
+                b: Ratio::from_u8(0),
                 a: 0
             }
         );
@@ -538,14 +575,14 @@ mod css_color_tests {
     #[test]
     fn can_convert_to_hsl_notations() {
         let rgb_rust = RGB {
-            r: 172,
-            g: 95,
-            b: 82,
+            r: Ratio::from_u8(172),
+            g: Ratio::from_u8(95),
+            b: Ratio::from_u8(82),
         };
         let rgba_rust = RGBA {
-            r: 172,
-            g: 95,
-            b: 82,
+            r: Ratio::from_u8(172),
+            g: Ratio::from_u8(95),
+            b: Ratio::from_u8(82),
             a: 255,
         };
         let hsl_rust = HSL {
@@ -572,11 +609,15 @@ mod css_color_tests {
 
     #[test]
     fn can_clone() {
-        let rgb_color = RGB { r: 5, g: 10, b: 15 };
+        let rgb_color = RGB {
+            r: Ratio::from_u8(5),
+            g: Ratio::from_u8(10),
+            b: Ratio::from_u8(15),
+        };
         let rgba_color = RGBA {
-            r: 5,
-            g: 10,
-            b: 15,
+            r: Ratio::from_u8(5),
+            g: Ratio::from_u8(10),
+            b: Ratio::from_u8(15),
             a: 255,
         };
         let hsl_color = HSL {
@@ -600,16 +641,16 @@ mod css_color_tests {
     #[test]
     fn can_copy() {
         let rgb_color = RGBA {
-            r: 5,
-            g: 10,
-            b: 15,
+            r: Ratio::from_u8(5),
+            g: Ratio::from_u8(10),
+            b: Ratio::from_u8(15),
             a: 255,
         };
         let copied_rgb_color = rgb_color;
         let rgba_color = RGBA {
-            r: 5,
-            g: 10,
-            b: 15,
+            r: Ratio::from_u8(5),
+            g: Ratio::from_u8(10),
+            b: Ratio::from_u8(15),
             a: 255,
         };
         let copied_rgba_color = rgba_color;
@@ -635,13 +676,20 @@ mod css_color_tests {
 
     #[test]
     fn can_debug() {
-        let rgb_value = format!("{:?}", RGB { r: 5, g: 10, b: 15 });
+        let rgb_value = format!(
+            "{:?}",
+            RGB {
+                r: Ratio::from_u8(5),
+                g: Ratio::from_u8(10),
+                b: Ratio::from_u8(15)
+            }
+        );
         let rgba_value = format!(
             "{:?}",
             RGBA {
-                r: 5,
-                g: 10,
-                b: 15,
+                r: Ratio::from_u8(5),
+                g: Ratio::from_u8(10),
+                b: Ratio::from_u8(15),
                 a: 255
             }
         );
@@ -663,8 +711,11 @@ mod css_color_tests {
             }
         );
 
-        assert_eq!(rgb_value, "RGB { r: 5, g: 10, b: 15 }");
-        assert_eq!(rgba_value, "RGBA { r: 5, g: 10, b: 15, a: 255 }");
+        assert_eq!(rgb_value, "RGB { r: Ratio(5), g: Ratio(10), b: Ratio(15) }");
+        assert_eq!(
+            rgba_value,
+            "RGBA { r: Ratio(5), g: Ratio(10), b: Ratio(15), a: 255 }"
+        );
         assert_eq!(
             hsl_value,
             "HSL { h: Angle { degrees: 6 }, s: Ratio(237), l: Ratio(181) }"
@@ -678,14 +729,14 @@ mod css_color_tests {
     #[test]
     fn can_convert_to_css() {
         let rgb = RGB {
-            r: 5,
-            g: 10,
-            b: 255,
+            r: Ratio::from_u8(5),
+            g: Ratio::from_u8(10),
+            b: Ratio::from_u8(255),
         };
         let rgba = RGBA {
-            r: 5,
-            g: 10,
-            b: 255,
+            r: Ratio::from_u8(5),
+            g: Ratio::from_u8(10),
+            b: Ratio::from_u8(255),
             a: 255,
         };
         let hsl = HSL {
@@ -700,8 +751,13 @@ mod css_color_tests {
             a: 255,
         };
 
-        assert_eq!(rgb.to_css(), "rgb(5, 10, 255)");
-        assert_eq!(rgba.to_css(), "rgba(5, 10, 255, 1.00)");
+        // TODO: You should probably be able to write rgb in both formats (percentage and u8).
+        // Need to add the ability to do that, and then these two tests will pass.
+        // assert_eq!(rgb.to_css(), "rgb(5, 10, 255)");
+        // assert_eq!(rgba.to_css(), "rgba(5, 10, 255, 1.00)");
+
+        assert_eq!(rgb.to_css(), "rgb(2%, 4%, 100%)");
+        assert_eq!(rgba.to_css(), "rgba(2%, 4%, 100%, 1.00)");
         assert_eq!(hsl.to_css(), "hsl(6, 93%, 71%)");
         assert_eq!(hsla.to_css(), "hsla(6, 93%, 71%, 1.00)");
     }
@@ -711,17 +767,17 @@ mod css_color_tests {
         let printed_rgb = format!(
             "{}",
             RGB {
-                r: 5,
-                g: 10,
-                b: 255
+                r: Ratio::from_u8(5),
+                g: Ratio::from_u8(10),
+                b: Ratio::from_u8(255),
             }
         );
         let printed_rgba = format!(
             "{}",
             RGBA {
-                r: 5,
-                g: 10,
-                b: 255,
+                r: Ratio::from_u8(5),
+                g: Ratio::from_u8(10),
+                b: Ratio::from_u8(255),
                 a: 255,
             }
         );
@@ -743,8 +799,13 @@ mod css_color_tests {
             }
         );
 
-        assert_eq!(printed_rgb, "rgb(5, 10, 255)");
-        assert_eq!(printed_rgba, "rgba(5, 10, 255, 1.00)");
+        // TODO: You should probably be able to write rgb in both formats (percentage and u8).
+        // Need to add the ability to do that, and then these two tests will pass.
+        // assert_eq!(printed_rgb, "rgb(5, 10, 255)");
+        // assert_eq!(printed_rgba, "rgba(5, 10, 255, 1.00)");
+
+        assert_eq!(printed_rgb, "rgb(2%, 4%, 100%)");
+        assert_eq!(printed_rgba, "rgba(2%, 4%, 100%, 1.00)");
         assert_eq!(printed_hsl, "hsl(6, 93%, 71%)");
         assert_eq!(printed_hsla, "hsla(6, 93%, 71%, 1.00)");
     }
@@ -752,14 +813,14 @@ mod css_color_tests {
     #[test]
     fn can_be_displayed() {
         let rgb = RGB {
-            r: 5,
-            g: 10,
-            b: 255,
+            r: Ratio::from_u8(5),
+            g: Ratio::from_u8(10),
+            b: Ratio::from_u8(255),
         };
         let rgba = RGBA {
-            r: 5,
-            g: 10,
-            b: 255,
+            r: Ratio::from_u8(5),
+            g: Ratio::from_u8(10),
+            b: Ratio::from_u8(255),
             a: 190,
         };
         let hsl = HSL {
@@ -774,8 +835,13 @@ mod css_color_tests {
             a: 255,
         };
 
-        assert_eq!("rgb(5, 10, 255)".to_owned(), format!("{}", rgb));
-        assert_eq!("rgba(5, 10, 255, 0.75)".to_owned(), format!("{}", rgba));
+        // TODO: You should probably be able to write rgb in both formats (percentage and u8).
+        // Need to add the ability to do that, and then these two tests will pass.
+        // assert_eq!("rgb(5, 10, 255)".to_owned(), format!("{}", rgb));
+        // assert_eq!("rgba(5, 10, 255, 0.75)".to_owned(), format!("{}", rgba));
+
+        assert_eq!("rgb(2%, 4%, 100%)".to_owned(), format!("{}", rgb));
+        assert_eq!("rgba(2%, 4%, 100%, 0.75)".to_owned(), format!("{}", rgba));
         assert_eq!("hsl(6, 93%, 71%)".to_owned(), format!("{}", hsl));
         assert_eq!("hsla(6, 93%, 71%, 1.00)".to_owned(), format!("{}", hsla));
     }
@@ -783,14 +849,14 @@ mod css_color_tests {
     #[test]
     fn can_be_stringified() {
         let rgb = RGB {
-            r: 5,
-            g: 10,
-            b: 255,
+            r: Ratio::from_u8(5),
+            g: Ratio::from_u8(10),
+            b: Ratio::from_u8(255),
         };
         let rgba = RGBA {
-            r: 5,
-            g: 10,
-            b: 255,
+            r: Ratio::from_u8(5),
+            g: Ratio::from_u8(10),
+            b: Ratio::from_u8(255),
             a: 128,
         };
         let hsl = HSL {
@@ -805,8 +871,13 @@ mod css_color_tests {
             a: 128,
         };
 
-        assert_eq!(String::from("rgb(5, 10, 255)"), rgb.to_string());
-        assert_eq!(String::from("rgba(5, 10, 255, 0.50)"), rgba.to_string());
+        // TODO: You should probably be able to write rgb in both formats (percentage and u8).
+        // Need to add the ability to do that, and then these two tests will pass.
+        // assert_eq!(String::from("rgb(5, 10, 255)"), rgb.to_string());
+        // assert_eq!(String::from("rgba(5, 10, 255, 0.50)"), rgba.to_string());
+
+        assert_eq!(String::from("rgb(2%, 4%, 100%)"), rgb.to_string());
+        assert_eq!(String::from("rgba(2%, 4%, 100%, 0.50)"), rgba.to_string());
         assert_eq!(String::from("hsl(6, 93%, 71%)"), hsl.to_string());
         assert_eq!(String::from("hsla(6, 93%, 71%, 0.50)"), hsla.to_string());
     }
