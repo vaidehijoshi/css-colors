@@ -86,7 +86,7 @@ pub trait Color {
 #[derive(Debug, Copy, Clone, PartialEq)]
 /// A struct to represent how much red, green, and blue should be added to create a color.
 ///
-/// Valid values for r, g, and b must fall between `0-255`.
+/// Valid values for r, g, and b must be a u8 between `0-255`, represented as a `Ratio`.
 ///
 /// For more, see the [CSS Color Spec](https://www.w3.org/TR/2018/REC-css-color-3-20180619/#rgb-color).
 pub struct RGB {
@@ -154,8 +154,6 @@ impl Color for RGB {
         // Otherwise, to determine luminosity, we conver the RGB values into a
         // percentage value, find the max and the min of those values, sum them
         // together, and divide by 2.
-
-        // TODO: delete me let r = self.r.to_f32() if r is a Ratio
         let r = Ratio::as_f32(self.r);
         let g = Ratio::as_f32(self.g);
         let b = Ratio::as_f32(self.b);
@@ -227,7 +225,8 @@ impl Color for RGB {
 /// A struct to represent how much red, green, and blue should be added to create a color.
 /// Also handles alpha specifications.
 ///
-/// Valid values for r, g, b, and a must fall between `0-255`.
+/// Valid values for r, g, and b must be a u8 between `0-255`, represented as a `Ratio`.
+/// Alpha (a) values must fall between `0-255`.
 ///
 /// For more, see the [CSS Color Spec](https://www.w3.org/TR/2018/REC-css-color-3-20180619/#rgba-color).
 pub struct RGBA {
