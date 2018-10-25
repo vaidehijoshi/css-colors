@@ -30,7 +30,9 @@ impl ops::Neg for Angle {
     type Output = Angle;
 
     fn neg(self) -> Angle {
-        Angle { degrees: (360 - self.degrees) % 360 }
+        Angle {
+            degrees: (360 - self.degrees) % 360,
+        }
     }
 }
 
@@ -81,8 +83,8 @@ impl ops::Div for Angle {
 
 #[cfg(test)]
 mod tests {
-    use {Angle};
-    
+    use Angle;
+
     #[test]
     fn can_have_degrees() {
         assert_eq!(Angle::new(30).degrees(), 30);
@@ -125,7 +127,10 @@ mod tests {
         assert_eq!(Angle::new(30) + Angle::new(47), Angle::new(77));
         assert_eq!(Angle::new(47) + Angle::new(30), Angle::new(77));
         assert_eq!(Angle::new(359) + Angle::new(1), Angle::new(0));
-        assert_eq!(Angle::new(359) + Angle::new(359) + Angle::new(359), Angle::new(357));
+        assert_eq!(
+            Angle::new(359) + Angle::new(359) + Angle::new(359),
+            Angle::new(357)
+        );
     }
 
     #[test]
@@ -133,7 +138,10 @@ mod tests {
         assert_eq!(Angle::new(30) - Angle::new(47), Angle::new(343));
         assert_eq!(Angle::new(47) - Angle::new(30), Angle::new(17));
         assert_eq!(Angle::new(0) - Angle::new(1), Angle::new(359));
-        assert_eq!(Angle::new(0) - Angle::new(359) - Angle::new(359) - Angle::new(359), Angle::new(3));
+        assert_eq!(
+            Angle::new(0) - Angle::new(359) - Angle::new(359) - Angle::new(359),
+            Angle::new(3)
+        );
     }
 
     #[test]
