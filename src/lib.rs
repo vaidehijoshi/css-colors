@@ -17,8 +17,8 @@ pub trait Color {
     /// let salmon = RGB::new(250, 128, 114);
     /// let opaque_salmon = RGBA::new(250, 128, 114, 128);
     ///
-    /// assert_eq!(salmon.to_css(), "rgb(98%, 50%, 45%)");
-    /// assert_eq!(opaque_salmon.to_css(), "rgba(98%, 50%, 45%, 0.50)");
+    /// assert_eq!(salmon.to_css(), "rgb(250, 128, 114)");
+    /// assert_eq!(opaque_salmon.to_css(), "rgba(250, 128, 114, 0.50)");
     /// ```
     fn to_css(self) -> String;
 
@@ -102,7 +102,13 @@ pub struct RGB {
 
 impl fmt::Display for RGB {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "rgb({}, {}, {})", self.r, self.g, self.b)
+        write!(
+            f,
+            "rgb({}, {}, {})",
+            self.r.as_u8(),
+            self.g.as_u8(),
+            self.b.as_u8()
+        )
     }
 }
 
@@ -253,9 +259,9 @@ impl fmt::Display for RGBA {
         write!(
             f,
             "rgba({}, {}, {}, {:.02})",
-            self.r,
-            self.g,
-            self.b,
+            self.r.as_u8(),
+            self.g.as_u8(),
+            self.b.as_u8(),
             self.a as f32 / 255.0
         )
     }
@@ -619,13 +625,8 @@ mod css_color_tests {
         let hsl = HSL::new(6, 93, 71);
         let hsla = HSLA::new(6, 93, 71, 255);
 
-        // TODO: You should probably be able to write rgb in both formats (percentage and u8).
-        // Need to add the ability to do that, and then these two tests will pass.
-        // assert_eq!(rgb.to_css(), "rgb(5, 10, 255)");
-        // assert_eq!(rgba.to_css(), "rgba(5, 10, 255, 1.00)");
-
-        assert_eq!(rgb.to_css(), "rgb(2%, 4%, 100%)");
-        assert_eq!(rgba.to_css(), "rgba(2%, 4%, 100%, 1.00)");
+        assert_eq!(rgb.to_css(), "rgb(5, 10, 255)");
+        assert_eq!(rgba.to_css(), "rgba(5, 10, 255, 1.00)");
         assert_eq!(hsl.to_css(), "hsl(6, 93%, 71%)");
         assert_eq!(hsla.to_css(), "hsla(6, 93%, 71%, 1.00)");
     }
@@ -637,13 +638,8 @@ mod css_color_tests {
         let printed_hsl = format!("{}", HSL::new(6, 93, 71));
         let printed_hsla = format!("{}", HSLA::new(6, 93, 71, 255));
 
-        // TODO: You should probably be able to write rgb in both formats (percentage and u8).
-        // Need to add the ability to do that, and then these two tests will pass.
-        // assert_eq!(printed_rgb, "rgb(5, 10, 255)");
-        // assert_eq!(printed_rgba, "rgba(5, 10, 255, 1.00)");
-
-        assert_eq!(printed_rgb, "rgb(2%, 4%, 100%)");
-        assert_eq!(printed_rgba, "rgba(2%, 4%, 100%, 1.00)");
+        assert_eq!(printed_rgb, "rgb(5, 10, 255)");
+        assert_eq!(printed_rgba, "rgba(5, 10, 255, 1.00)");
         assert_eq!(printed_hsl, "hsl(6, 93%, 71%)");
         assert_eq!(printed_hsla, "hsla(6, 93%, 71%, 1.00)");
     }
@@ -655,13 +651,8 @@ mod css_color_tests {
         let hsl = HSL::new(6, 93, 71);
         let hsla = HSLA::new(6, 93, 71, 255);
 
-        // TODO: You should probably be able to write rgb in both formats (percentage and u8).
-        // Need to add the ability to do that, and then these two tests will pass.
-        // assert_eq!("rgb(5, 10, 255)".to_owned(), format!("{}", rgb));
-        // assert_eq!("rgba(5, 10, 255, 0.75)".to_owned(), format!("{}", rgba));
-
-        assert_eq!("rgb(2%, 4%, 100%)".to_owned(), format!("{}", rgb));
-        assert_eq!("rgba(2%, 4%, 100%, 0.75)".to_owned(), format!("{}", rgba));
+        assert_eq!("rgb(5, 10, 255)".to_owned(), format!("{}", rgb));
+        assert_eq!("rgba(5, 10, 255, 0.75)".to_owned(), format!("{}", rgba));
         assert_eq!("hsl(6, 93%, 71%)".to_owned(), format!("{}", hsl));
         assert_eq!("hsla(6, 93%, 71%, 1.00)".to_owned(), format!("{}", hsla));
     }
@@ -673,13 +664,8 @@ mod css_color_tests {
         let hsl = HSL::new(6, 93, 71);
         let hsla = HSLA::new(6, 93, 71, 128);
 
-        // TODO: You should probably be able to write rgb in both formats (percentage and u8).
-        // Need to add the ability to do that, and then these two tests will pass.
-        // assert_eq!(String::from("rgb(5, 10, 255)"), rgb.to_string());
-        // assert_eq!(String::from("rgba(5, 10, 255, 0.50)"), rgba.to_string());
-
-        assert_eq!(String::from("rgb(2%, 4%, 100%)"), rgb.to_string());
-        assert_eq!(String::from("rgba(2%, 4%, 100%, 0.50)"), rgba.to_string());
+        assert_eq!(String::from("rgb(5, 10, 255)"), rgb.to_string());
+        assert_eq!(String::from("rgba(5, 10, 255, 0.50)"), rgba.to_string());
         assert_eq!(String::from("hsl(6, 93%, 71%)"), hsl.to_string());
         assert_eq!(String::from("hsla(6, 93%, 71%, 0.50)"), hsla.to_string());
     }
