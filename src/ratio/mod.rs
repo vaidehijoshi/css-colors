@@ -10,7 +10,7 @@ impl Ratio {
     pub fn from_percentage(percentage: u8) -> Self {
         assert!(percentage <= 100, "Invalid value for percentage");
 
-        Ratio((percentage as f32 / 100.0 * 255.0).round() as u8)
+        Ratio::from_f32(percentage as f32 / 100.0)
     }
 
     pub fn from_u8(value: u8) -> Self {
@@ -21,7 +21,7 @@ impl Ratio {
         assert!(float >= 0.0, "Invalid ratio for type f32");
         assert!(float <= 1.0, "Invalid ratio for type f32");
 
-        Ratio((float / 1.0 * 255.0).round() as u8)
+        Ratio((float * 255.0).round() as u8)
     }
 
     pub fn as_percentage(self) -> u8 {
@@ -115,22 +115,87 @@ mod tests {
     }
 
     #[test]
-    fn computes_valid_percentage() {
+    fn adds_percentage() {
         let a = Ratio::from_percentage(55);
         let b = Ratio::from_percentage(45);
         let c = Ratio::from_percentage(10);
 
         assert_eq!((a + b).unwrap(), Ratio::from_percentage(100));
-        assert_eq!((b - c).unwrap(), Ratio::from_percentage(35));
+        assert_eq!((a + c).unwrap(), Ratio::from_percentage(65));
     }
 
     #[test]
-    fn computes_valid_f32() {
+    fn subtracts_percentage() {
+        let a = Ratio::from_percentage(45);
+        let b = Ratio::from_percentage(10);
+        let c = Ratio::from_percentage(1);
+
+        assert_eq!((a - b).unwrap(), Ratio::from_percentage(35));
+        assert_eq!((b - c).unwrap(), Ratio::from_percentage(9));
+    }
+
+    #[test]
+    fn multiplies_percentage() {
+        let a = Ratio::from_percentage(10);
+        let b = Ratio::from_percentage(1);
+        let c = Ratio::from_percentage(2);
+
+        assert_eq!((b * c).unwrap(), Ratio::from_u8(15));
+        assert_eq!((c * c).unwrap(), Ratio::from_u8(25));
+        assert_eq!((a * b).unwrap(), Ratio::from_u8(78));
+    }
+
+    #[test]
+    fn divides_percentage() {
+        let a = Ratio::from_percentage(45);
+        let b = Ratio::from_percentage(10);
+        let c = Ratio::from_percentage(1);
+
+        assert_eq!((b / c).unwrap(), Ratio::from_u8(8));
+        assert_eq!((a / c).unwrap(), Ratio::from_u8(38));
+        assert_eq!((a / b).unwrap(), Ratio::from_u8(4));
+    }
+
+    #[test]
+    fn adds_f32() {
         let a = Ratio::from_f32(0.55);
         let b = Ratio::from_f32(0.45);
         let c = Ratio::from_f32(0.10);
 
         assert_eq!((a + b).unwrap(), Ratio::from_f32(1.0));
+        assert_eq!((c + c).unwrap(), Ratio::from_u8(52));
+        // This seems to be lossy; possible to test like this?
+        // assert_eq!((c + c).unwrap(), Ratio::from_f32(0.2));
+    }
+
+    #[test]
+    fn subtracts_f32() {
+        let a = Ratio::from_f32(0.55);
+        let b = Ratio::from_f32(0.45);
+        let c = Ratio::from_f32(0.10);
+
         assert_eq!((b - c).unwrap(), Ratio::from_f32(0.35));
+        assert_eq!((a - b).unwrap(), Ratio::from_u8(25));
+        // assert_eq!((a - b).unwrap(), Ratio::from_f32(0.10));
+    }
+
+    #[test]
+    fn multiplies_f32() {
+        let a = Ratio::from_f32(0.01);
+        let b = Ratio::from_f32(0.02);
+
+        assert_eq!((a * b).unwrap(), Ratio::from_u8(15));
+        assert_eq!((a * a).unwrap(), Ratio::from_u8(9));
+        // assert_eq!((a * a).unwrap(), Ratio::from_f32(0.0001));
+    }
+
+    #[test]
+    fn divides_f32() {
+        let a = Ratio::from_f32(0.25);
+        let b = Ratio::from_f32(0.50);
+        let c = Ratio::from_f32(0.75);
+
+        assert_eq!((b / a).unwrap(), Ratio::from_u8(2));
+        assert_eq!((c / b).unwrap(), Ratio::from_u8(1));
     }
 }
