@@ -154,11 +154,11 @@ impl Color for RGB {
         // black and white), with no hue or saturation. In that situation, there
         // is no saturation or hue, and we can use any value to determine luminosity.
         if r == g && g == b {
-            return HSL::new(
-                0,         // h
-                0,         // s
-                r.as_u8(), // l
-            );
+            return HSL {
+                h: Angle::new(0),             // h
+                s: Ratio::from_percentage(0), // s
+                l: r,                         // l
+            };
         }
 
         // Otherwise, to determine luminosity, we conver the RGB values into a
@@ -370,7 +370,11 @@ impl Color for HSL {
         // If there is no saturation, the color is a shade of grey.
         // We can convert the luminosity and set r, g, and b to that value.
         if s == 0.0 {
-            return RGB::new(Ratio::from_f32(l), Ratio::from_f32(l), Ratio::from_f32(l));
+            return RGB::new(
+                Ratio::from_f32(l).as_u8(),
+                Ratio::from_f32(l).as_u8(),
+                Ratio::from_f32(l).as_u8(),
+            );
         }
 
         // If the color is not a grey, then we need to create a temporary variable to continue with the algorithm.
@@ -430,14 +434,16 @@ impl Color for HSL {
         }
 
         RGB::new(
-            Ratio::from_f32(red),
-            Ratio::from_f32(temporary_g),
-            Ratio::from_f32(temporary_b),
+            Ratio::from_f32(red).as_u8(),
+            Ratio::from_f32(temporary_g).as_u8(),
+            Ratio::from_f32(temporary_b).as_u8(),
         )
     }
 
     fn to_rgba(self) -> RGBA {
-        unimplemented!("need to impl to_rgba for HSL")
+        let RGB { r, g, b } = self.to_rgb();
+
+        RGBA::new(r.as_u8(), g.as_u8(), b.as_u8(), 255)
     }
 
     fn to_hsl(self) -> HSL {
@@ -516,11 +522,11 @@ impl Color for HSLA {
     }
 
     fn to_rgb(self) -> RGB {
-        unimplemented!("need to impl to_rgb for HSLA")
+        self.to_hsl().to_rgb()
     }
 
     fn to_rgba(self) -> RGBA {
-        unimplemented!("need to impl to_rgba for HSLA")
+        self.to_hsl().to_rgba()
     }
 
     fn to_hsl(self) -> HSL {
@@ -582,40 +588,30 @@ mod css_color_tests {
     fn can_convert_to_rgb_notations() {
         let rgb_color = RGB::new(5, 10, 15);
         let rgba_color = RGBA::new(5, 10, 15, 255);
-        let _hsl_color = HSL::new(6, 93, 71);
-        let _hsla_color = HSLA::new(6, 93, 71, 255);
+        let hsl_color = HSL::new(6, 93, 71);
+        let hsla_color = HSLA::new(6, 93, 71, 255);
 
-        assert_eq!(rgba_color.to_rgb(), rgb_color);
-
-        // FIXME: update these tests once HSL <-> RBG impl exists (currently unimplemented!)
+        // HSL to RGB (currently unimplemented!)
         // assert_eq!(hsl_color.to_rgb(), rgb_color);
         // assert_eq!(hsla_color.to_rgb(), rgb_color);
+
+        // RGBA to RGB
+        assert_eq!(rgba_color.to_rgb(), rgb_color);
     }
 
     #[test]
     fn can_convert_to_rgba_notations() {
         let rgb_color = RGB::new(5, 10, 15);
         let rgba_color = RGBA::new(5, 10, 15, 255);
-        let _hsl_color = HSL::new(6, 93, 71);
-        let _hsla_color = HSLA::new(6, 93, 71, 255);
+        let hsl_color = HSL::new(6, 93, 71);
+        let hsla_color = HSLA::new(6, 93, 71, 255);
 
-        assert_eq!(rgb_color.to_rgba(), rgba_color);
-
-        // HSL to RGB & RGBA
-        assert_eq!(
-            grey_hsl_color.to_rgb(),
-            RGB {
-                r: Ratio::from_u8(64),
-                g: Ratio::from_u8(64),
-                b: Ratio::from_u8(64)
-            }
-        );
-        assert_eq!(hsl_color.to_rgb(), rgb_color);
+        // HSL to RGBA (currently unimplemented!)
+        // assert_eq!(hsl_color.to_rgba(), rgba_color);
         // assert_eq!(hsl_color.to_rgba(), rgba_color);
 
-        // HSLA to RGB & RGBA
-        // assert_eq!(hsla_color.to_rgb(), rgb_color);
-        // assert_eq!(hsla_color.to_rgba(), rgba_color);
+        // RGB to RGBA
+        assert_eq!(rgb_color.to_rgba(), rgba_color);
     }
 
     #[test]
@@ -640,14 +636,28 @@ mod css_color_tests {
         let hsl_color = HSL::new(9, 35, 50);
         let hsla_color = HSLA::new(9, 35, 50, 255);
 
-        // TODO: add a test when RGB is grey, test logic to convert to HSLA.
-
         // RGB to HSLA
         assert_eq!(rgb_color.to_hsla().to_string(), hsla_color.to_string());
         assert_eq!(rgba_color.to_hsla().to_string(), hsla_color.to_string());
 
         // HSL to HSLA
         assert_eq!(hsl_color.to_hsla().to_string(), hsla_color.to_string());
+    }
+
+    #[test]
+    fn can_convert_between_grey_colors() {
+        let grey_rgb_color = RGB::new(230, 230, 230);
+        let grey_rgba_color = RGBA::new(230, 230, 230, 255);
+        let grey_hsl_color = HSL::new(0, 0, 90);
+        let grey_hsla_color = HSLA::new(0, 0, 90, 255);
+
+        // TO GREY HSL & HSLA
+        assert_eq!(grey_rgb_color.to_hsl(), grey_hsl_color);
+        assert_eq!(grey_rgb_color.to_hsla(), grey_hsla_color);
+
+        // TO GREY RGB & RGBA
+        assert_eq!(grey_hsl_color.to_rgb(), grey_rgb_color);
+        assert_eq!(grey_hsl_color.to_rgba(), grey_rgba_color);
     }
 
     #[test]
