@@ -354,6 +354,29 @@ impl HSL {
             l: Ratio::from_percentage(l),
         }
     }
+
+    fn to_rgb_value(value: f32, temp_1: f32, temp_2: f32) -> f32 {
+        let converted: f32;
+
+        // Check whether temporary variable * 6 is larger than one.
+        if value * 6.0 > 1.0 {
+            // If it is larger than 1, check it's product with 2.
+            if value * 2.0 > 1.0 {
+                // If it is large than 1, check it's product with 3.
+                if value * 3.0 > 2.0 {
+                    converted = temp_2;
+                } else {
+                    converted = temp_2 + ((temp_1 - temp_2) * (0.666 - value) * 6.0);
+                }
+            } else {
+                converted = temp_1;
+            }
+        } else {
+            converted = (temp_2 + (temp_1 - temp_2)) * value * 6.0;
+        }
+
+        converted
+    }
 }
 
 impl Color for HSL {
@@ -362,10 +385,9 @@ impl Color for HSL {
     }
 
     fn to_rgb(self) -> RGB {
-        // let HSL { h, s, l } = self;
         let h = self.h;
-        let s = Ratio::as_f32(self.s);
-        let l = Ratio::as_f32(self.l);
+        let s = (Ratio::as_f32(self.s) * 100.0).round() / 100.0;
+        let l = (Ratio::as_f32(self.l) * 100.0).round() / 100.0;
 
         // If there is no saturation, the color is a shade of grey.
         // We can convert the luminosity and set r, g, and b to that value.
@@ -412,32 +434,15 @@ impl Color for HSL {
             temporary_b -= 1.0;
         }
 
-        // test 1 – If 6 x temporary_R is smaller then 1, Red = temporary_2 + (temporary_1 – temporary_2) x 6 x temporary_R
-        // In the case the first test is larger then 1 check the following
-        //
-        // test 2 – If 2 x temporary_R is smaller then 1, Red = temporary_1
-        // In the case the second test also is larger then 1 do the following
-        //
-        // test 3 – If 3 x temporary_R is smaller then 2, Red = temporary_2 + (temporary_1 – temporary_2) x (0.666 – temporary_R) x 6
-        // In the case the third test also is larger then 2 you do the following
-        let red: f32;
-        if temporary_r * 6.0 < 1.0 {
-            red = (temp_2 + (temp_1 - temp_2)) * 6.0 * temporary_r;
-        } else if temporary_r * 2.0 < 1.0 {
-            red = temp_1;
-        } else if temporary_r * 3.0 < 2.0 {
-            red = temp_2 + (temp_1 - temp_2) * (0.666 - temporary_r) * 6.0;
-        } else if temporary_r * 3.0 > 2.0 {
-            red = temp_2;
-        } else {
-            unreachable!("this seems bad");
-        }
+        let red = HSL::to_rgb_value(temporary_r, temp_1, temp_2);
+        let green = HSL::to_rgb_value(temporary_g, temp_1, temp_2);
+        let blue = HSL::to_rgb_value(temporary_b, temp_1, temp_2);
 
-        RGB::new(
-            Ratio::from_f32(red).as_u8(),
-            Ratio::from_f32(temporary_g).as_u8(),
-            Ratio::from_f32(temporary_b).as_u8(),
-        )
+        RGB {
+            r: Ratio::from_f32(red),
+            g: Ratio::from_f32(green),
+            b: Ratio::from_f32(blue),
+        }
     }
 
     fn to_rgba(self) -> RGBA {
@@ -586,29 +591,40 @@ mod css_color_tests {
 
     #[test]
     fn can_convert_to_rgb_notations() {
-        let rgb_color = RGB::new(5, 10, 15);
-        let rgba_color = RGBA::new(5, 10, 15, 255);
-        let hsl_color = HSL::new(6, 93, 71);
-        let hsla_color = HSLA::new(6, 93, 71, 255);
+        let rgb_color = RGB::new(24, 98, 119);
+        let rgba_color = RGBA::new(24, 98, 119, 255);
+        let hsl_color = HSL::new(193, 67, 28);
+        let hsla_color = HSLA::new(193, 67, 28, 255);
 
-        // HSL to RGB (currently unimplemented!)
-        // assert_eq!(hsl_color.to_rgb(), rgb_color);
-        // assert_eq!(hsla_color.to_rgb(), rgb_color);
+        // HSL to RGB
+        assert_eq!(hsl_color.to_rgb(), rgb_color);
+        assert_eq!(hsla_color.to_rgb(), rgb_color);
 
         // RGBA to RGB
         assert_eq!(rgba_color.to_rgb(), rgb_color);
+
+        // TODO: add tests for more conversions.
+        // let another_rgb_color = RGB::new(10, 15, 25);
+        // let another_hsl_color = HSL::new(73, 57, 54);
+        // assert_eq!(hsla_color.to_rgb(), rgb_color);
     }
 
     #[test]
     fn can_convert_to_rgba_notations() {
-        let rgb_color = RGB::new(5, 10, 15);
-        let rgba_color = RGBA::new(5, 10, 15, 255);
-        let hsl_color = HSL::new(6, 93, 71);
-        let hsla_color = HSLA::new(6, 93, 71, 255);
+        // TODO: add tests for more conversions.
+        // let rgb_color = RGB::new(5, 10, 15);
+        // let rgba_color = RGBA::new(5, 10, 15, 255);
+        // let hsl_color = HSL::new(6, 93, 71);
+        // let hsla_color = HSLA::new(6, 93, 71, 255);
+
+        let rgb_color = RGB::new(24, 98, 119);
+        let rgba_color = RGBA::new(24, 98, 119, 255);
+        let hsl_color = HSL::new(193, 67, 28);
+        let hsla_color = HSLA::new(193, 67, 28, 255);
 
         // HSL to RGBA (currently unimplemented!)
-        // assert_eq!(hsl_color.to_rgba(), rgba_color);
-        // assert_eq!(hsl_color.to_rgba(), rgba_color);
+        assert_eq!(hsl_color.to_rgba(), rgba_color);
+        assert_eq!(hsla_color.to_rgba(), rgba_color);
 
         // RGB to RGBA
         assert_eq!(rgb_color.to_rgba(), rgba_color);
