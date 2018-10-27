@@ -84,7 +84,7 @@ pub trait Color {
 
     fn saturate(self, amount: u8) -> Self;
 
-    fn fadein(self, amount: u8) -> Self;
+    fn fadein(self, _amount: u8) -> Self;
 }
 
 #[derive(Debug, Copy, Clone, PartialEq)]
@@ -241,7 +241,7 @@ impl Color for RGB {
         self.to_hsl().saturate(amount).to_rgb()
     }
 
-    fn fadein(self, amount: u8) -> Self {
+    fn fadein(self, _amount: u8) -> Self {
         self
     }
 }
@@ -328,14 +328,14 @@ impl Color for RGBA {
         self.to_hsla().saturate(amount).to_rgba()
     }
 
-    fn fadein(self, amount: u8) -> Self {
+    fn fadein(self, _amount: u8) -> Self {
         let RGBA { r, g, b, a } = self;
 
         RGBA {
             r,
             g,
             b,
-            a: a + amount,
+            a: a + _amount,
         }
     }
 }
@@ -460,12 +460,12 @@ impl Color for HSL {
 
         HSL {
             h,
-            s: s + amount,
+            s: (s + Ratio::from_percentage(amount)).unwrap(),
             l,
         }
     }
 
-    fn fadein(self, amount: u8) -> Self {
+    fn fadein(self, _amount: u8) -> Self {
         self
     }
 }
@@ -573,20 +573,20 @@ impl Color for HSLA {
 
         HSLA {
             h,
-            s: s + amount,
+            s: Ratio::from_percentage(s.as_u8() + amount),
             l,
             a,
         }
     }
 
-    fn fadein(self, amount: u8) -> Self {
+    fn fadein(self, _amount: u8) -> Self {
         let HSLA { h, s, l, a } = self;
 
         HSLA {
             h,
             s,
             l,
-            a: a + amount,
+            a: a + _amount,
         }
     }
 }
