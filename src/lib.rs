@@ -600,38 +600,36 @@ mod css_color_tests {
         let rgba_color = RGBA::new(23, 98, 119, 255);
         let hsl_color = HSL::new(193, 67, 28);
         let hsla_color = HSLA::new(193, 67, 28, 255);
+        let another_rgb_color = RGB::new(5, 10, 15);
 
         // HSL to RGB
         assert_eq!(hsl_color.to_rgb(), rgb_color);
         assert_eq!(hsla_color.to_rgb(), rgb_color);
+        assert_eq!(HSL::new(210, 50, 4).to_rgb(), another_rgb_color);
+        assert_eq!(HSLA::new(210, 50, 4, 255).to_rgb(), another_rgb_color);
 
         // RGBA to RGB
         assert_eq!(rgba_color.to_rgb(), rgb_color);
-
-        // TODO: add tests for more conversions.
-        // let another_rgb_color = RGB::new(10, 15, 25);
-        // let another_hsl_color = HSL::new(73, 57, 54);
+        assert_eq!(RGBA::new(5, 10, 15, 255).to_rgb(), another_rgb_color);
     }
 
     #[test]
     fn can_convert_to_rgba_notations() {
-        // TODO: add tests for more conversions.
-        // let rgb_color = RGB::new(5, 10, 15);
-        // let rgba_color = RGBA::new(5, 10, 15, 255);
-        // let hsl_color = HSL::new(6, 93, 71);
-        // let hsla_color = HSLA::new(6, 93, 71, 255);
-
         let rgb_color = RGB::new(23, 98, 119);
         let rgba_color = RGBA::new(23, 98, 119, 255);
         let hsl_color = HSL::new(193, 67, 28);
         let hsla_color = HSLA::new(193, 67, 28, 255);
+        let another_rgba_color = RGBA::new(5, 10, 15, 255);
 
-        // HSL to RGBA (currently unimplemented!)
+        // HSL to RGBA
         assert_eq!(hsl_color.to_rgba(), rgba_color);
         assert_eq!(hsla_color.to_rgba(), rgba_color);
+        assert_eq!(HSL::new(210, 50, 4).to_rgba(), another_rgba_color);
+        assert_eq!(HSLA::new(210, 50, 4, 255).to_rgba(), another_rgba_color);
 
         // RGB to RGBA
         assert_eq!(rgb_color.to_rgba(), rgba_color);
+        assert_eq!(RGB::new(5, 10, 15).to_rgba(), another_rgba_color);
     }
 
     #[test]
@@ -640,13 +638,17 @@ mod css_color_tests {
         let rgba_color = RGBA::new(172, 95, 82, 255);
         let hsl_color = HSL::new(9, 35, 50);
         let hsla_color = HSLA::new(9, 35, 50, 255);
+        let another_hsl_color = HSL::new(210, 50, 4);
 
         // RGB to HSL
         assert_eq!(rgb_color.to_hsl().to_string(), hsl_color.to_string());
         assert_eq!(rgba_color.to_hsl().to_string(), hsl_color.to_string());
+        assert_eq!(RGB::new(5, 10, 15).to_hsl(), another_hsl_color);
+        assert_eq!(RGBA::new(5, 10, 15, 255).to_hsl(), another_hsl_color);
 
         // HSLA to HSL
         assert_eq!(hsla_color.to_hsl().to_string(), hsl_color.to_string());
+        assert_eq!(HSLA::new(210, 50, 4, 255).to_hsl(), another_hsl_color);
     }
 
     #[test]
@@ -655,13 +657,17 @@ mod css_color_tests {
         let rgba_color = RGBA::new(172, 95, 82, 255);
         let hsl_color = HSL::new(9, 35, 50);
         let hsla_color = HSLA::new(9, 35, 50, 255);
+        let another_hsla_color = HSLA::new(210, 50, 4, 255);
 
         // RGB to HSLA
         assert_eq!(rgb_color.to_hsla().to_string(), hsla_color.to_string());
         assert_eq!(rgba_color.to_hsla().to_string(), hsla_color.to_string());
+        assert_eq!(RGB::new(5, 10, 15).to_hsla(), another_hsla_color);
+        assert_eq!(RGBA::new(5, 10, 15, 255).to_hsla(), another_hsla_color);
 
         // HSL to HSLA
         assert_eq!(hsl_color.to_hsla().to_string(), hsla_color.to_string());
+        assert_eq!(HSL::new(210, 50, 4).to_hsla(), another_hsla_color);
     }
 
     #[test]
