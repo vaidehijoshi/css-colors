@@ -215,8 +215,10 @@ impl Color for RGB {
 
         hue *= 60.0;
 
-        // TODO: handle when hue is negative (add 360 to make it positive).
-        assert!(hue >= 0.0, "oops, forgot to handle negative");
+        // If hue is negative, add 360 to make it it positive.
+        if hue <= 0.0 {
+            hue += 360.0;
+        }
 
         HSL::new(
             hue.round() as u16,                 // h
@@ -416,32 +418,13 @@ impl Color for HSL {
         // Convert the hue by dividing the angle by 360.
         let hue = h.degrees() as f32 / 360.0;
 
-        let mut temporary_r = hue + (1.0 / 3.0);
-        let mut temporary_g = hue;
-        let mut temporary_b = hue - (1.0 / 3.0);
+        let temporary_r = hue + (1.0 / 3.0);
+        let temporary_g = hue;
+        let temporary_b = hue - (1.0 / 3.0);
 
-        // TODO: Can I do this in a nicer way?
-        if temporary_r > 1.0 {
-            temporary_r -= 1.0;
-        } else if temporary_r < 0.0 {
-            temporary_r += 1.0;
-        }
-
-        if temporary_g > 1.0 {
-            temporary_g -= 1.0;
-        } else if temporary_g < 0.0 {
-            temporary_g += 1.0;
-        }
-
-        if temporary_b > 1.0 {
-            temporary_b -= 1.0;
-        } else if temporary_b < 0.0 {
-            temporary_b += 1.0;
-        }
-
-        let red = HSL::to_rgb_value(temporary_r, temp_1, temp_2);
-        let green = HSL::to_rgb_value(temporary_g, temp_1, temp_2);
-        let blue = HSL::to_rgb_value(temporary_b, temp_1, temp_2);
+        let red = HSL::to_rgb_value(ensure_in_range(temporary_r), temp_1, temp_2);
+        let green = HSL::to_rgb_value(ensure_in_range(temporary_g), temp_1, temp_2);
+        let blue = HSL::to_rgb_value(ensure_in_range(temporary_b), temp_1, temp_2);
 
         RGB {
             r: Ratio::from_f32(red),
@@ -468,6 +451,17 @@ impl Color for HSL {
             255,
         )
     }
+}
+
+// A function to ensure that a value is always within a range of 0.0 - 1.0.
+fn ensure_in_range(mut value: f32) -> f32 {
+    if value > 1.0 {
+        value -= 1.0;
+    } else if value < 0.0 {
+        value += 1.0;
+    }
+
+    value
 }
 
 #[derive(Debug, Copy, Clone, PartialEq)]
