@@ -99,6 +99,9 @@ pub trait Color {
 
     // TODO: document
     fn fadeout(self, amount: u8) -> Self;
+
+    // TODO: document
+    fn fade(self, amount: u8) -> RGBA;
 }
 
 #[derive(Debug, Copy, Clone, PartialEq)]
@@ -274,6 +277,10 @@ impl Color for RGB {
     fn fadeout(self, _amount: u8) -> Self {
         self
     }
+
+    fn fade(self, amount: u8) -> RGBA {
+        RGBA::new(self.r.as_u8(), self.g.as_u8(), self.b.as_u8(), amount)
+    }
 }
 
 #[derive(Debug, Copy, Clone, PartialEq)]
@@ -395,6 +402,12 @@ impl Color for RGBA {
             b,
             a: a - amount,
         }
+    }
+
+    fn fade(self, amount: u8) -> Self {
+        let RGBA { r, g, b, a } = self;
+
+        RGBA { r, g, b, a: amount }
     }
 }
 
@@ -559,6 +572,12 @@ impl Color for HSL {
 
     fn fadeout(self, _amount: u8) -> Self {
         self
+    }
+
+    fn fade(self, amount: u8) -> RGBA {
+        let RGB { r, g, b } = self.to_rgb();
+
+        RGBA::new(r.as_u8(), g.as_u8(), b.as_u8(), amount)
     }
 }
 
@@ -731,6 +750,12 @@ impl Color for HSLA {
             l,
             a: a - amount,
         }
+    }
+
+    fn fade(self, amount: u8) -> RGBA {
+        let RGB { r, g, b } = self.to_rgb();
+
+        RGBA::new(r.as_u8(), g.as_u8(), b.as_u8(), amount)
     }
 }
 
@@ -1173,6 +1198,20 @@ mod css_color_tests {
         assert_eq!(rgb_color.fadeout(20), rgb_color);
         assert_eq!(faded_hsla_color.fadeout(20), hsla_color);
         assert_eq!(faded_rgba_color.fadeout(20), rgba_color);
+    }
+
+    #[test]
+    fn can_fade() {
+        let rgb_color = RGB::new(23, 98, 119);
+        let rgba_color = RGBA::new(23, 98, 119, 255);
+        let hsl_color = HSL::new(193, 67, 28);
+        let hsla_color = HSLA::new(193, 67, 28, 255);
+        let faded_color = RGBA::new(23, 98, 119, 50);
+
+        assert_eq!(rgb_color.fade(50), faded_color);
+        assert_eq!(rgba_color.fade(50), faded_color);
+        assert_eq!(hsl_color.fade(50), faded_color);
+        assert_eq!(hsla_color.fade(50), faded_color);
     }
 
     #[test]
