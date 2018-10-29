@@ -356,29 +356,6 @@ impl HSL {
             l: Ratio::from_percentage(l),
         }
     }
-
-    fn to_rgb_value(value: f32, temp_1: f32, temp_2: f32) -> f32 {
-        let converted: f32;
-
-        // Check whether temporary variable * 6 is larger than one.
-        if value * 6.0 > 1.0 {
-            // If it is larger than 1, check it's product with 2.
-            if value * 2.0 > 1.0 {
-                // If it is large than 1, check it's product with 3.
-                if value * 3.0 > 2.0 {
-                    converted = temp_2;
-                } else {
-                    converted = temp_2 + ((temp_1 - temp_2) * ((2.0 / 3.0) - value) * 6.0);
-                }
-            } else {
-                converted = temp_1;
-            }
-        } else {
-            converted = (temp_2 + (temp_1 - temp_2)) * value * 6.0;
-        }
-
-        converted
-    }
 }
 
 impl Color for HSL {
@@ -422,9 +399,9 @@ impl Color for HSL {
         let temporary_g = hue;
         let temporary_b = hue - (1.0 / 3.0);
 
-        let red = HSL::to_rgb_value(ensure_in_range(temporary_r), temp_1, temp_2);
-        let green = HSL::to_rgb_value(ensure_in_range(temporary_g), temp_1, temp_2);
-        let blue = HSL::to_rgb_value(ensure_in_range(temporary_b), temp_1, temp_2);
+        let red = to_rgb_value(ensure_in_range(temporary_r), temp_1, temp_2);
+        let green = to_rgb_value(ensure_in_range(temporary_g), temp_1, temp_2);
+        let blue = to_rgb_value(ensure_in_range(temporary_b), temp_1, temp_2);
 
         RGB {
             r: Ratio::from_f32(red),
@@ -451,6 +428,30 @@ impl Color for HSL {
             255,
         )
     }
+}
+
+// A function to convert an HSL value (either h, s, or l) into the equivalent, valid RGB value.
+fn to_rgb_value(value: f32, temp_1: f32, temp_2: f32) -> f32 {
+    let converted: f32;
+
+    // Check whether temporary variable * 6 is larger than one.
+    if value * 6.0 > 1.0 {
+        // If it is larger than 1, check it's product with 2.
+        if value * 2.0 > 1.0 {
+            // If it is large than 1, check it's product with 3.
+            if value * 3.0 > 2.0 {
+                converted = temp_2;
+            } else {
+                converted = temp_2 + ((temp_1 - temp_2) * ((2.0 / 3.0) - value) * 6.0);
+            }
+        } else {
+            converted = temp_1;
+        }
+    } else {
+        converted = (temp_2 + (temp_1 - temp_2)) * value * 6.0;
+    }
+
+    converted
 }
 
 // A function to ensure that a value is always within a range of 0.0 - 1.0.
