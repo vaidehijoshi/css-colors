@@ -95,7 +95,10 @@ pub trait Color {
     fn darken(self, amount: u8) -> Self;
 
     // TODO: document
-    fn fadein(self, _amount: u8) -> Self;
+    fn fadein(self, amount: u8) -> Self;
+
+    // TODO: document
+    fn fadeout(self, amount: u8) -> Self;
 }
 
 #[derive(Debug, Copy, Clone, PartialEq)]
@@ -267,6 +270,10 @@ impl Color for RGB {
     fn fadein(self, _amount: u8) -> Self {
         self
     }
+
+    fn fadeout(self, _amount: u8) -> Self {
+        self
+    }
 }
 
 #[derive(Debug, Copy, Clone, PartialEq)]
@@ -363,14 +370,30 @@ impl Color for RGBA {
         self.to_hsla().darken(amount).to_rgba()
     }
 
-    fn fadein(self, _amount: u8) -> Self {
+    fn fadein(self, amount: u8) -> Self {
+        let RGBA { r, g, b, a } = self;
+
+        // TODO: what if overflow happens?
+        // if self.a == 255 {
+        //     return self;
+        // }
+
+        RGBA {
+            r,
+            g,
+            b,
+            a: a + amount,
+        }
+    }
+
+    fn fadeout(self, amount: u8) -> Self {
         let RGBA { r, g, b, a } = self;
 
         RGBA {
             r,
             g,
             b,
-            a: a + _amount,
+            a: a - amount,
         }
     }
 }
@@ -533,6 +556,10 @@ impl Color for HSL {
     fn fadein(self, _amount: u8) -> Self {
         self
     }
+
+    fn fadeout(self, _amount: u8) -> Self {
+        self
+    }
 }
 
 // A function to convert an HSL value (either h, s, or l) into the equivalent, valid RGB value.
@@ -677,14 +704,32 @@ impl Color for HSLA {
         }
     }
 
-    fn fadein(self, _amount: u8) -> Self {
+    fn fadein(self, amount: u8) -> Self {
+        let HSLA { h, s, l, a } = self;
+
+        // TODO: what if overflow happens?
+        // if self.a == 255 {
+        //     return self;
+        // }
+
+        // panic!("a: {}, amount: {}, a + amount: {}", a, amount, a + amount);
+
+        HSLA {
+            h,
+            s,
+            l,
+            a: a + amount,
+        }
+    }
+
+    fn fadeout(self, amount: u8) -> Self {
         let HSLA { h, s, l, a } = self;
 
         HSLA {
             h,
             s,
             l,
-            a: a + _amount,
+            a: a - amount,
         }
     }
 }
@@ -1064,10 +1109,10 @@ mod css_color_tests {
         let hsla_color = HSLA::new(9, 35, 50, 255);
         let saturated_hsl_color = HSL::new(9, 55, 50);
         let saturated_hsla_color = HSLA::new(9, 55, 50, 255);
-        // let rgb_color = RGB::new(172, 96, 83);
-        // let saturated_rgb_color = RGB::new(197, 78, 57);
-        // let rgba_color = RGBA::new(172, 96, 83, 255);
-        // let saturated_rgba_color = RGBA::new(197, 78, 57, 255);
+        let rgb_color = RGB::new(172, 96, 83);
+        let saturated_rgb_color = RGB::new(197, 78, 57);
+        let rgba_color = RGBA::new(172, 96, 83, 255);
+        let saturated_rgba_color = RGBA::new(197, 78, 57, 255);
 
         // Saturate
         assert_eq!(hsl_color.saturate(20), saturated_hsl_color);
@@ -1088,10 +1133,10 @@ mod css_color_tests {
         let hsla_color = HSLA::new(9, 35, 50, 255);
         let lightened_hsl_color = HSL::new(9, 35, 70);
         let lightened_hsla_color = HSLA::new(9, 35, 70, 255);
-        // let rgb_color = RGB::new(172, 96, 83);
-        // let lightened_rgb_color = RGB::new(205, 160, 152);
-        // let rgba_color = RGBA::new(172, 96, 83, 255);
-        // let lightened_rgba_color = RGBA::new(205, 160, 152, 255);
+        let rgb_color = RGB::new(172, 96, 83);
+        let lightened_rgb_color = RGB::new(205, 160, 152);
+        let rgba_color = RGBA::new(172, 96, 83, 255);
+        let lightened_rgba_color = RGBA::new(205, 160, 152, 255);
 
         // Lighten
         assert_eq!(hsl_color.lighten(20), lightened_hsl_color);
@@ -1104,6 +1149,30 @@ mod css_color_tests {
         assert_eq!(lightened_hsla_color.darken(20), hsla_color);
         // assert_eq!(lightened_rgb_color.darken(20), rgb_color);
         // assert_eq!(lightened_rgba_color.darken(20), rgba_color);
+    }
+
+    #[test]
+    fn can_fade_in_and_out() {
+        let hsl_color = HSL::new(9, 35, 50);
+        let hsla_color = HSLA::new(9, 35, 50, 128);
+        let faded_hsla_color = HSLA::new(9, 35, 50, 148);
+        let rgb_color = RGB::new(172, 96, 83);
+        let rgba_color = RGBA::new(172, 96, 83, 128);
+        let faded_rgba_color = RGBA::new(172, 96, 83, 148);
+
+        // Opaque Colors
+        assert_eq!(hsl_color.fadein(20), hsl_color);
+        assert_eq!(hsl_color.fadeout(20), hsl_color);
+
+        // Fade In
+        assert_eq!(hsla_color.fadein(20), faded_hsla_color);
+        assert_eq!(rgba_color.fadein(20), faded_rgba_color);
+
+        // Fade Out
+        assert_eq!(rgb_color.fadein(20), rgb_color);
+        assert_eq!(rgb_color.fadeout(20), rgb_color);
+        assert_eq!(faded_hsla_color.fadeout(20), hsla_color);
+        assert_eq!(faded_rgba_color.fadeout(20), rgba_color);
     }
 
     #[test]
