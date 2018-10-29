@@ -420,18 +420,23 @@ impl Color for HSL {
         let mut temporary_g = hue;
         let mut temporary_b = hue - 0.333;
 
-        // TODO: handle what happens if these temporary rgb's are bigger than 1 or less than 0.
-        // can i just use 'as_percentage' here??
+        // TODO: Can I do this in a nicer way?
         if temporary_r > 1.0 {
             temporary_r -= 1.0;
+        } else if temporary_r < 0.0 {
+            temporary_r += 1.0;
         }
 
         if temporary_g > 1.0 {
             temporary_g -= 1.0;
+        } else if temporary_g < 0.0 {
+            temporary_g += 1.0;
         }
 
         if temporary_b > 1.0 {
             temporary_b -= 1.0;
+        } else if temporary_b < 0.0 {
+            temporary_b += 1.0;
         }
 
         let red = HSL::to_rgb_value(temporary_r, temp_1, temp_2);
