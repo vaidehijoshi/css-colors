@@ -238,7 +238,9 @@ impl Color for RGB {
     }
 
     fn saturate(self, amount: u8) -> Self {
-        self.to_hsl().saturate(amount).to_rgb()
+        let value = self.to_hsl();
+
+        value.saturate(amount).to_rgb()
     }
 
     fn fadein(self, _amount: u8) -> Self {
@@ -573,7 +575,7 @@ impl Color for HSLA {
 
         HSLA {
             h,
-            s: Ratio::from_percentage(s.as_u8() + amount),
+            s: (s + Ratio::from_percentage(amount)).unwrap(),
             l,
             a,
         }
@@ -958,6 +960,20 @@ mod css_color_tests {
         // assert_eq!(hsla_brown.to_rgba(), rgba_brown); // fails
         // assert_eq!(hsla_pink.to_rgb(), rgb_pink); // fails
         // assert_eq!(hsla_pink.to_rgba(), rgba_pink); // fails
+    }
+
+    #[test]
+    fn can_saturate() {
+        // let rgb_color = RGB::new(172, 95, 82);
+        let hsl_color = HSL::new(9, 35, 50);
+        let hsla_color = HSLA::new(9, 35, 50, 255);
+        let saturated_hsl_color = HSL::new(9, 55, 50);
+        let saturated_hsla_color = HSLA::new(9, 55, 50, 255);
+        // let saturated_rgb_color = RGB::new(197, 78, 57);
+
+        assert_eq!(hsl_color.saturate(20), saturated_hsl_color);
+        assert_eq!(hsla_color.saturate(20), saturated_hsla_color);
+        // assert_eq!(rgb_color.saturate(20), saturated_rgb_color);
     }
 
     #[test]
