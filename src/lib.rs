@@ -82,8 +82,13 @@ pub trait Color {
     /// ```
     fn to_hsla(self) -> HSLA;
 
+    // TODO: document
     fn saturate(self, amount: u8) -> Self;
 
+    // TODO: document
+    fn desaturate(self, amount: u8) -> Self;
+
+    // TODO: document
     fn fadein(self, _amount: u8) -> Self;
 }
 
@@ -238,9 +243,11 @@ impl Color for RGB {
     }
 
     fn saturate(self, amount: u8) -> Self {
-        let value = self.to_hsl();
+        self.to_hsl().saturate(amount).to_rgb()
+    }
 
-        value.saturate(amount).to_rgb()
+    fn desaturate(self, amount: u8) -> Self {
+        self.to_hsl().desaturate(amount).to_rgb()
     }
 
     fn fadein(self, _amount: u8) -> Self {
@@ -328,6 +335,10 @@ impl Color for RGBA {
 
     fn saturate(self, amount: u8) -> Self {
         self.to_hsla().saturate(amount).to_rgba()
+    }
+
+    fn desaturate(self, amount: u8) -> Self {
+        self.to_hsla().desaturate(amount).to_rgba()
     }
 
     fn fadein(self, _amount: u8) -> Self {
@@ -467,6 +478,16 @@ impl Color for HSL {
         }
     }
 
+    fn desaturate(self, amount: u8) -> Self {
+        let HSL { h, s, l } = self;
+
+        HSL {
+            h,
+            s: (s - Ratio::from_percentage(amount)).unwrap(),
+            l,
+        }
+    }
+
     fn fadein(self, _amount: u8) -> Self {
         self
     }
@@ -576,6 +597,17 @@ impl Color for HSLA {
         HSLA {
             h,
             s: (s + Ratio::from_percentage(amount)).unwrap(),
+            l,
+            a,
+        }
+    }
+
+    fn desaturate(self, amount: u8) -> Self {
+        let HSLA { h, s, l, a } = self;
+
+        HSLA {
+            h,
+            s: (s - Ratio::from_percentage(amount)).unwrap(),
             l,
             a,
         }
@@ -963,17 +995,27 @@ mod css_color_tests {
     }
 
     #[test]
-    fn can_saturate() {
-        // let rgb_color = RGB::new(172, 95, 82);
+    fn can_handle_saturation() {
         let hsl_color = HSL::new(9, 35, 50);
         let hsla_color = HSLA::new(9, 35, 50, 255);
         let saturated_hsl_color = HSL::new(9, 55, 50);
         let saturated_hsla_color = HSLA::new(9, 55, 50, 255);
+        // let rgb_color = RGB::new(172, 95, 82);
         // let saturated_rgb_color = RGB::new(197, 78, 57);
+        // let rgba_color = RGBA::new(172, 95, 82, 255);
+        // let saturated_rgba_color = RGBA::new(197, 78, 57, 255);
 
+        // Saturate
         assert_eq!(hsl_color.saturate(20), saturated_hsl_color);
         assert_eq!(hsla_color.saturate(20), saturated_hsla_color);
         // assert_eq!(rgb_color.saturate(20), saturated_rgb_color);
+        // assert_eq!(rgba_color.saturate(20), saturated_rgba_color);
+
+        // Desaturate
+        assert_eq!(saturated_hsl_color.desaturate(20), hsl_color);
+        assert_eq!(saturated_hsla_color.desaturate(20), hsla_color);
+        // assert_eq!(saturated_rgb_color.desaturate(20), rgb_color);
+        // assert_eq!(saturated_rgba_color.desaturate(20), rgba_color);
     }
 
     #[test]
