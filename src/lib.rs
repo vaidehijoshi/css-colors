@@ -102,6 +102,9 @@ pub trait Color {
 
     // TODO: document
     fn fade(self, amount: u8) -> RGBA;
+
+    // TODO: document
+    fn spin(self, amount: i16) -> RGB;
 }
 
 #[derive(Debug, Copy, Clone, PartialEq)]
@@ -281,6 +284,10 @@ impl Color for RGB {
     fn fade(self, amount: u8) -> RGBA {
         RGBA::new(self.r.as_u8(), self.g.as_u8(), self.b.as_u8(), amount)
     }
+
+    fn spin(self, amount: i16) -> RGB {
+        self.to_hsl().spin(amount)
+    }
 }
 
 #[derive(Debug, Copy, Clone, PartialEq)]
@@ -408,6 +415,10 @@ impl Color for RGBA {
         let RGBA { r, g, b, a } = self;
 
         RGBA { r, g, b, a: amount }
+    }
+
+    fn spin(self, amount: i16) -> RGB {
+        self.to_hsl().spin(amount)
     }
 }
 
@@ -578,6 +589,21 @@ impl Color for HSL {
         let RGB { r, g, b } = self.to_rgb();
 
         RGBA::new(r.as_u8(), g.as_u8(), b.as_u8(), amount)
+    }
+
+    fn spin(self, amount: i16) -> RGB {
+        let HSL { h, s, l } = self;
+        let new_hue;
+
+        assert!(amount < 360, "Invalid spin amount");
+
+        if amount.is_negative() {
+            new_hue = h - Angle::new((amount * -1) as u16);
+        } else {
+            new_hue = h + Angle::new(amount as u16)
+        }
+
+        HSL { h: new_hue, s, l }.to_rgb()
     }
 }
 
@@ -756,6 +782,10 @@ impl Color for HSLA {
         let RGB { r, g, b } = self.to_rgb();
 
         RGBA::new(r.as_u8(), g.as_u8(), b.as_u8(), amount)
+    }
+
+    fn spin(self, amount: i16) -> RGB {
+        self.to_hsl().spin(amount)
     }
 }
 
