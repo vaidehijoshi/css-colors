@@ -285,8 +285,8 @@ impl Color for RGB {
         RGBA::new(self.r.as_u8(), self.g.as_u8(), self.b.as_u8(), amount)
     }
 
-    fn spin(self, amount: i16) -> RGB {
-        self.to_hsl().spin(amount)
+    fn spin(self, amount: i16) -> Self {
+        self.to_hsl().spin(amount).to_rgb()
     }
 }
 
@@ -412,13 +412,13 @@ impl Color for RGBA {
     }
 
     fn fade(self, amount: u8) -> Self {
-        let RGBA { r, g, b, a } = self;
+        let RGBA { r, g, b, a: _ } = self;
 
         RGBA { r, g, b, a: amount }
     }
 
     fn spin(self, amount: i16) -> RGB {
-        self.to_hsl().spin(amount)
+        self.to_hsl().spin(amount).to_rgb()
     }
 }
 
@@ -593,15 +593,14 @@ impl Color for HSL {
 
     fn spin(self, amount: i16) -> RGB {
         let HSL { h, s, l } = self;
-        let new_hue;
 
         assert!(amount < 360, "Invalid spin amount");
 
-        if amount.is_negative() {
-            new_hue = h - Angle::new((amount * -1) as u16);
+        let new_hue = if amount.is_negative() {
+            h - Angle::new((amount * -1) as u16)
         } else {
-            new_hue = h + Angle::new(amount as u16)
-        }
+            h + Angle::new(amount as u16)
+        };
 
         HSL { h: new_hue, s, l }.to_rgb()
     }
@@ -785,7 +784,7 @@ impl Color for HSLA {
     }
 
     fn spin(self, amount: i16) -> RGB {
-        self.to_hsl().spin(amount)
+        self.to_hsl().spin(amount).to_rgb()
     }
 }
 
@@ -1136,7 +1135,6 @@ mod css_color_tests {
         // Saturate
         assert_eq!(hsl_color.saturate(20), saturated_hsl_color);
         assert_eq!(hsla_color.saturate(20), saturated_hsla_color);
-
         assert_approximately_eq!(rgb_color.saturate(20), saturated_rgb_color);
         assert_approximately_eq!(rgb_color.saturate(20), saturated_rgb_color);
         assert_approximately_eq!(rgba_color.saturate(20), saturated_rgba_color);
@@ -1210,6 +1208,28 @@ mod css_color_tests {
         assert_eq!(rgba_color.fade(50), faded_color);
         assert_eq!(hsl_color.fade(50), faded_color);
         assert_eq!(hsla_color.fade(50), faded_color);
+    }
+
+    #[test]
+    fn can_spin() {
+        use self::conversions::ApproximatelyEq;
+
+        let rgb_color = RGB::new(75, 207, 23);
+        let rgba_color = RGBA::new(75, 207, 23, 255);
+        let hsl_color = HSL::new(10, 90, 50);
+        let hsla_color = HSLA::new(10, 90, 50, 255);
+
+        // Spin RGB/RGBA
+        assert_approximately_eq!(rgb_color.spin(100), RGB::new(23, 136, 207));
+        assert_approximately_eq!(rgba_color.spin(100), RGB::new(23, 136, 207));
+        assert_approximately_eq!(rgb_color.spin(-100), RGB::new(207, 32, 23));
+        assert_approximately_eq!(rgba_color.spin(-100), RGB::new(207, 32, 23));
+
+        // Spin HSL/HSLA
+        assert_approximately_eq!(hsl_color.spin(30), RGB::new(242, 166, 13));
+        assert_approximately_eq!(hsla_color.spin(30), RGB::new(242, 166, 13));
+        assert_approximately_eq!(hsl_color.spin(-30), RGB::new(242, 13, 89));
+        assert_approximately_eq!(hsla_color.spin(-30), RGB::new(242, 13, 89));
     }
 
     #[test]
