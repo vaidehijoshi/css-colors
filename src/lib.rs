@@ -154,11 +154,11 @@ impl Color for RGB {
         // black and white), with no hue or saturation. In that situation, there
         // is no saturation or hue, and we can use any value to determine luminosity.
         if r == g && g == b {
-            return HSL::new(
-                0,         // h
-                0,         // s
-                r.as_u8(), // l
-            );
+            return HSL {
+                h: Angle::new(0),             // h
+                s: Ratio::from_percentage(0), // s
+                l: r,                         // l
+            };
         }
 
         // Otherwise, to determine luminosity, we conver the RGB values into a
@@ -196,7 +196,7 @@ impl Color for RGB {
         } else if luminosity < 0.5 {
             (max - min) / (max + min)
         } else {
-            (max - min) / (2.0 - max - min)
+            (max - min) / (2.0 - (max + min))
         };
 
         // To calculate the hue, we look at which value (r, g, or b) is the max.
@@ -215,14 +215,16 @@ impl Color for RGB {
 
         hue *= 60.0;
 
-        // TODO: handle when hue is negative (add 360 to make it positive).
-        assert!(hue >= 0.0, "oops, forgot to handle negative");
+        // If hue is negative, add 360 to make it it positive.
+        if hue <= 0.0 {
+            hue += 360.0;
+        }
 
-        HSL::new(
-            hue.round() as u16,                 // h
-            (saturation * 100.0).round() as u8, // s
-            (luminosity * 100.0).round() as u8, // l
-        )
+        HSL {
+            h: Angle::new(hue.round() as u16),
+            s: Ratio::from_f32(saturation),
+            l: Ratio::from_f32(luminosity),
+        }
     }
 
     fn to_hsla(self) -> HSLA {
@@ -362,11 +364,55 @@ impl Color for HSL {
     }
 
     fn to_rgb(self) -> RGB {
-        unimplemented!("need to impl to_rgb for HSL")
+        let hue = self.h;
+        let s = self.s.as_f32();
+        let l = self.l.as_f32();
+
+        // If there is no saturation, the color is a shade of grey.
+        // We can convert the luminosity and set r, g, and b to that value.
+        if s == 0.0 {
+            return RGB {
+                r: self.l,
+                g: self.l,
+                b: self.l,
+            };
+        }
+
+        // If the color is not a grey, then we need to create a temporary variable to continue with the algorithm.
+        // If the luminosity is less than 50%, we add 1.0 to the saturation and multiply by the luminosity.
+        // Otherwise, we add the luminosity and saturation, and subtract the product of luminosity and saturation from it.
+        let temp_1 = if l < 0.5 {
+            l * (1.0 + s)
+        } else {
+            (l + s) - (l * s)
+        };
+
+        // Another temporary variable.
+        let temp_2 = (2.0 * l) - temp_1;
+
+        // Create a rotation of 120 degrees in order to divide the angle into thirds.
+        let rotation = Angle::new(120);
+
+        // Then rotate the circle clockwise by 1/3 for the red value, and by 2/3rds for the blue value.
+        let temporary_r = (hue + rotation).degrees();
+        let temporary_g = hue.degrees();
+        let temporary_b = (hue - rotation).degrees();
+
+        let red = to_rgb_value(temporary_r, temp_1, temp_2);
+        let green = to_rgb_value(temporary_g, temp_1, temp_2);
+        let blue = to_rgb_value(temporary_b, temp_1, temp_2);
+
+        RGB {
+            r: Ratio::from_f32(red),
+            g: Ratio::from_f32(green),
+            b: Ratio::from_f32(blue),
+        }
     }
 
     fn to_rgba(self) -> RGBA {
-        unimplemented!("need to impl to_rgba for HSL")
+        let RGB { r, g, b } = self.to_rgb();
+
+        RGBA::new(r.as_u8(), g.as_u8(), b.as_u8(), 255)
     }
 
     fn to_hsl(self) -> HSL {
@@ -380,6 +426,25 @@ impl Color for HSL {
             self.l.as_percentage(),
             255,
         )
+    }
+}
+
+// A function to convert an HSL value (either h, s, or l) into the equivalent, valid RGB value.
+fn to_rgb_value(val: u16, temp_1: f32, temp_2: f32) -> f32 {
+    let value = val as f32 / 360.0;
+
+    if value > (2.0 / 3.0) {
+        // value > 0.66667
+        temp_2
+    } else if value > (1.0 / 2.0) {
+        // value is between 0.5 and 0.66667
+        temp_2 + ((temp_1 - temp_2) * ((2.0 / 3.0) - value) * 6.0)
+    } else if value > (1.0 / 6.0) {
+        // value is between 0.16667 and 0.5
+        temp_1
+    } else {
+        // value <= 0.16667
+        temp_2 + ((temp_1 - temp_2) * value * 6.0)
     }
 }
 
@@ -445,19 +510,17 @@ impl Color for HSLA {
     }
 
     fn to_rgb(self) -> RGB {
-        unimplemented!("need to impl to_rgb for HSLA")
+        self.to_hsl().to_rgb()
     }
 
     fn to_rgba(self) -> RGBA {
-        unimplemented!("need to impl to_rgba for HSLA")
+        let RGB { r, g, b } = self.to_rgb();
+        RGBA { r, g, b, a: self.a }
     }
 
     fn to_hsl(self) -> HSL {
-        HSL::new(
-            self.h.degrees(),
-            self.s.as_percentage(),
-            self.l.as_percentage(),
-        )
+        let HSLA { h, s, l, .. } = self;
+        HSL { h, s, l }
     }
 
     fn to_hsla(self) -> HSLA {
@@ -507,62 +570,292 @@ mod css_color_tests {
         );
     }
 
-    #[test]
-    fn can_convert_to_rgb_notations() {
-        let rgb_color = RGB::new(5, 10, 15);
-        let rgba_color = RGBA::new(5, 10, 15, 255);
-        let _hsl_color = HSL::new(6, 93, 71);
-        let _hsla_color = HSLA::new(6, 93, 71, 255);
+    mod conversions {
+        use crate::{Angle, Ratio, HSL, HSLA, RGB, RGBA};
 
-        assert_eq!(rgba_color.to_rgb(), rgb_color);
+        trait ApproximatelyEq {
+            fn approximately_eq(self, other: Self) -> bool;
+        }
 
-        // FIXME: update these tests once HSL <-> RBG impl exists (currently unimplemented!)
-        // assert_eq!(hsl_color.to_rgb(), rgb_color);
-        // assert_eq!(hsla_color.to_rgb(), rgb_color);
-    }
+        impl ApproximatelyEq for u8 {
+            fn approximately_eq(self, other: Self) -> bool {
+                self == other || self + 1 == other || self - 1 == other
+            }
+        }
 
-    #[test]
-    fn can_convert_to_rgba_notations() {
-        let rgb_color = RGB::new(5, 10, 15);
-        let rgba_color = RGBA::new(5, 10, 15, 255);
-        let _hsl_color = HSL::new(6, 93, 71);
-        let _hsla_color = HSLA::new(6, 93, 71, 255);
+        impl ApproximatelyEq for u16 {
+            fn approximately_eq(self, other: Self) -> bool {
+                self == other || self + 1 == other || self - 1 == other
+            }
+        }
 
-        assert_eq!(rgb_color.to_rgba(), rgba_color);
+        impl ApproximatelyEq for Angle {
+            fn approximately_eq(self, other: Self) -> bool {
+                self.degrees().approximately_eq(other.degrees())
+            }
+        }
 
-        // FIXME: update these tests once HSL <-> RBG impl exists (currently unimplemented!)
-        // assert_eq!(hsl_color.to_rgba(), rgba_color);
-        // assert_eq!(hsla_color.to_rgba(), rgba_color);
-    }
+        impl ApproximatelyEq for Ratio {
+            fn approximately_eq(self, other: Self) -> bool {
+                self.as_u8().approximately_eq(other.as_u8())
+            }
+        }
 
-    #[test]
-    fn can_convert_to_hsl_notations() {
-        let rgb_color = RGB::new(172, 95, 82);
-        let rgba_color = RGBA::new(172, 95, 82, 255);
-        let hsl_color = HSL::new(9, 35, 50);
-        let hsla_color = HSLA::new(9, 35, 50, 255);
+        impl ApproximatelyEq for RGB {
+            fn approximately_eq(self, other: Self) -> bool {
+                self.r.approximately_eq(other.r)
+                    && self.g.approximately_eq(other.g)
+                    && self.b.approximately_eq(other.b)
+            }
+        }
 
-        // RGB to HSL
-        assert_eq!(rgb_color.to_hsl().to_string(), hsl_color.to_string());
-        assert_eq!(rgba_color.to_hsl().to_string(), hsl_color.to_string());
+        impl ApproximatelyEq for RGBA {
+            fn approximately_eq(self, other: Self) -> bool {
+                self.r.approximately_eq(other.r)
+                    && self.g.approximately_eq(other.g)
+                    && self.b.approximately_eq(other.b)
+                    && self.a == other.a
+            }
+        }
 
-        // HSLA to HSL
-        assert_eq!(hsla_color.to_hsl().to_string(), hsl_color.to_string());
-    }
+        impl ApproximatelyEq for HSL {
+            fn approximately_eq(self, other: Self) -> bool {
+                self.h.approximately_eq(other.h)
+                    && self
+                        .s
+                        .as_percentage()
+                        .approximately_eq(other.s.as_percentage())
+                    && self
+                        .l
+                        .as_percentage()
+                        .approximately_eq(other.l.as_percentage())
+            }
+        }
 
-    #[test]
-    fn can_convert_to_hsla_notations() {
-        let rgb_color = RGB::new(172, 95, 82);
-        let rgba_color = RGBA::new(172, 95, 82, 255);
-        let hsl_color = HSL::new(9, 35, 50);
-        let hsla_color = HSLA::new(9, 35, 50, 255);
+        impl ApproximatelyEq for HSLA {
+            fn approximately_eq(self, other: Self) -> bool {
+                self.h.approximately_eq(other.h)
+                    && self
+                        .s
+                        .as_percentage()
+                        .approximately_eq(other.s.as_percentage())
+                    && self
+                        .l
+                        .as_percentage()
+                        .approximately_eq(other.l.as_percentage())
+                    && self.a == other.a
+            }
+        }
 
-        // RGB to HSLA
-        assert_eq!(rgb_color.to_hsla().to_string(), hsla_color.to_string());
-        assert_eq!(rgba_color.to_hsla().to_string(), hsla_color.to_string());
+        macro_rules! assert_approximately_eq {
+            ($lhs:expr, $rhs:expr) => {
+                let lhs = $lhs;
+                let rhs = $rhs;
 
-        // HSL to HSLA
-        assert_eq!(hsl_color.to_hsla().to_string(), hsla_color.to_string());
+                assert!(lhs.approximately_eq(rhs), "lhs: {}, rhs: {}", lhs, rhs);
+            };
+        }
+
+        macro_rules! conversion_test {
+            (
+                $color_name:ident,
+                rgb($r:expr, $g:expr, $b:expr),
+                hsl($h:expr, $s:expr, $l:expr)
+            ) => {
+                mod $color_name {
+                    use super::ApproximatelyEq;
+                    use $crate::{Color, HSL, HSLA, RGB, RGBA};
+
+                    #[test]
+                    fn rgb_to_rgb() {
+                        assert_eq!(RGB::new($r, $g, $b).to_rgb(), RGB::new($r, $g, $b));
+                    }
+
+                    #[test]
+                    fn rgb_to_rgba() {
+                        assert_eq!(RGB::new($r, $g, $b).to_rgba(), RGBA::new($r, $g, $b, 255));
+                    }
+
+                    #[test]
+                    fn rgba_to_rgb() {
+                        assert_eq!(RGBA::new($r, $g, $b, 255).to_rgb(), RGB::new($r, $g, $b));
+                        assert_eq!(RGBA::new($r, $g, $b, 200).to_rgb(), RGB::new($r, $g, $b));
+                        assert_eq!(RGBA::new($r, $g, $b, 0).to_rgb(), RGB::new($r, $g, $b));
+                    }
+
+                    #[test]
+                    fn rgba_to_rgba() {
+                        assert_eq!(
+                            RGBA::new($r, $g, $b, 255).to_rgba(),
+                            RGBA::new($r, $g, $b, 255)
+                        );
+
+                        assert_eq!(
+                            RGBA::new($r, $g, $b, 200).to_rgba(),
+                            RGBA::new($r, $g, $b, 200)
+                        );
+
+                        assert_eq!(RGBA::new($r, $g, $b, 0).to_rgba(), RGBA::new($r, $g, $b, 0));
+                    }
+
+                    #[test]
+                    fn rgb_to_hsl() {
+                        assert_approximately_eq!(
+                            RGB::new($r, $g, $b).to_hsl(),
+                            HSL::new($h, $s, $l)
+                        );
+                    }
+
+                    #[test]
+                    fn rgb_to_hsla() {
+                        assert_approximately_eq!(
+                            RGB::new($r, $g, $b).to_hsla(),
+                            HSLA::new($h, $s, $l, 255)
+                        );
+                    }
+
+                    #[test]
+                    fn rgba_to_hsl() {
+                        assert_approximately_eq!(
+                            RGBA::new($r, $g, $b, 255).to_hsl(),
+                            HSL::new($h, $s, $l)
+                        );
+
+                        assert_approximately_eq!(
+                            RGBA::new($r, $g, $b, 200).to_hsl(),
+                            HSL::new($h, $s, $l)
+                        );
+
+                        assert_approximately_eq!(
+                            RGBA::new($r, $g, $b, 0).to_hsl(),
+                            HSL::new($h, $s, $l)
+                        );
+                    }
+
+                    #[test]
+                    fn rgba_to_hsla() {
+                        assert_approximately_eq!(
+                            RGBA::new($r, $g, $b, 255).to_hsla(),
+                            HSLA::new($h, $s, $l, 255)
+                        );
+
+                        assert_approximately_eq!(
+                            RGBA::new($r, $g, $b, 200).to_hsla(),
+                            HSLA::new($h, $s, $l, 200)
+                        );
+
+                        assert_approximately_eq!(
+                            RGBA::new($r, $g, $b, 0).to_hsla(),
+                            HSLA::new($h, $s, $l, 0)
+                        );
+                    }
+
+                    #[test]
+                    fn hsl_to_hsl() {
+                        assert_eq!(HSL::new($h, $s, $l).to_hsl(), HSL::new($h, $s, $l));
+                    }
+
+                    #[test]
+                    fn hsl_to_hsla() {
+                        assert_eq!(HSL::new($h, $s, $l).to_hsla(), HSLA::new($h, $s, $l, 255));
+                    }
+
+                    #[test]
+                    fn hsla_to_hsl() {
+                        assert_eq!(HSLA::new($h, $s, $l, 255).to_hsl(), HSL::new($h, $s, $l));
+
+                        assert_eq!(HSLA::new($h, $s, $l, 200).to_hsl(), HSL::new($h, $s, $l));
+
+                        assert_eq!(HSLA::new($h, $s, $l, 0).to_hsl(), HSL::new($h, $s, $l));
+                    }
+
+                    #[test]
+                    fn hsla_to_hsla() {
+                        assert_eq!(
+                            HSLA::new($h, $s, $l, 255).to_hsla(),
+                            HSLA::new($h, $s, $l, 255)
+                        );
+
+                        assert_eq!(
+                            HSLA::new($h, $s, $l, 200).to_hsla(),
+                            HSLA::new($h, $s, $l, 200)
+                        );
+
+                        assert_eq!(HSLA::new($h, $s, $l, 0).to_hsla(), HSLA::new($h, $s, $l, 0));
+                    }
+
+                    #[test]
+                    fn hsl_to_rgb() {
+                        assert_approximately_eq!(
+                            HSL::new($h, $s, $l).to_rgb(),
+                            RGB::new($r, $g, $b)
+                        );
+                    }
+
+                    #[test]
+                    fn hsl_to_rgba() {
+                        assert_approximately_eq!(
+                            HSL::new($h, $s, $l).to_rgba(),
+                            RGBA::new($r, $g, $b, 255)
+                        );
+                    }
+
+                    #[test]
+                    fn hsla_to_rgb() {
+                        assert_approximately_eq!(
+                            HSLA::new($h, $s, $l, 255).to_rgb(),
+                            RGB::new($r, $g, $b)
+                        );
+
+                        assert_approximately_eq!(
+                            HSLA::new($h, $s, $l, 200).to_rgb(),
+                            RGB::new($r, $g, $b)
+                        );
+
+                        assert_approximately_eq!(
+                            HSLA::new($h, $s, $l, 0).to_rgb(),
+                            RGB::new($r, $g, $b)
+                        );
+                    }
+
+                    #[test]
+                    fn hsla_to_rgba() {
+                        assert_approximately_eq!(
+                            HSLA::new($h, $s, $l, 255).to_rgba(),
+                            RGBA::new($r, $g, $b, 255)
+                        );
+
+                        assert_approximately_eq!(
+                            HSLA::new($h, $s, $l, 200).to_rgba(),
+                            RGBA::new($r, $g, $b, 200)
+                        );
+
+                        assert_approximately_eq!(
+                            HSLA::new($h, $s, $l, 0).to_rgba(),
+                            RGBA::new($r, $g, $b, 0)
+                        );
+                    }
+                }
+            };
+        }
+
+        conversion_test!(black, rgb(0, 0, 0), hsl(0, 0, 0));
+        conversion_test!(grey, rgb(230, 230, 230), hsl(0, 0, 90));
+        conversion_test!(white, rgb(255, 255, 255), hsl(0, 0, 100));
+
+        conversion_test!(pink, rgb(253, 216, 229), hsl(339, 90, 92));
+        conversion_test!(brown, rgb(172, 96, 83), hsl(9, 35, 50));
+        conversion_test!(teal, rgb(23, 98, 119), hsl(193, 68, 28));
+        conversion_test!(green, rgb(89, 161, 54), hsl(100, 50, 42));
+        conversion_test!(pale_blue, rgb(148, 189, 209), hsl(200, 40, 70));
+        conversion_test!(mauve, rgb(136, 102, 153), hsl(280, 20, 50));
+        conversion_test!(cherry, rgb(230, 25, 60), hsl(350, 80, 50));
+        conversion_test!(tomato, rgb(255, 99, 71), hsl(9, 100, 64));
+        conversion_test!(light_salmon, rgb(255, 160, 122), hsl(17, 100, 74));
+        conversion_test!(blue_violet, rgb(138, 43, 226), hsl(271, 76, 53));
+        conversion_test!(dark_orange, rgb(255, 140, 0), hsl(33, 100, 50));
+        conversion_test!(deep_pink, rgb(255, 20, 147), hsl(328, 100, 54));
+        conversion_test!(chartreuse, rgb(127, 255, 0), hsl(90, 100, 50));
     }
 
     #[test]
