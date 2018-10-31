@@ -364,7 +364,7 @@ impl Color for HSL {
     }
 
     fn to_rgb(self) -> RGB {
-        let h = self.h;
+        let hue = self.h;
         let s = self.s.as_f32();
         let l = self.l.as_f32();
 
@@ -379,29 +379,28 @@ impl Color for HSL {
         }
 
         // If the color is not a grey, then we need to create a temporary variable to continue with the algorithm.
-        let temp_1;
-
         // If the luminosity is less than 50%, we add 1.0 to the saturation and multiply by the luminosity.
         // Otherwise, we add the luminosity and saturation, and subtract the product of luminosity and saturation from it.
-        if l < 0.5 {
-            temp_1 = l * (1.0 + s);
+        let temp_1 = if l < 0.5 {
+            l * (1.0 + s)
         } else {
-            temp_1 = (l + s) - (l * s);
-        }
+            (l + s) - (l * s)
+        };
 
         // Another temporary variable.
         let temp_2 = (2.0 * l) - temp_1;
 
-        // Convert the hue by dividing the angle by 360.
-        let hue = h.degrees() as f32 / 360.0;
+        // Create a rotation of 120 degrees in order to divide the angle into thirds.
+        let rotation = Angle::new(120);
 
-        let temporary_r = hue + (1.0 / 3.0);
-        let temporary_g = hue;
-        let temporary_b = hue - (1.0 / 3.0);
+        // Then rotate the circle clockwise by 1/3 for the red value, and by 2/3rds for the blue value.
+        let temporary_r = (hue + rotation).degrees();
+        let temporary_g = hue.degrees();
+        let temporary_b = (hue - rotation).degrees();
 
-        let red = to_rgb_value(ensure_in_range(temporary_r), temp_1, temp_2);
-        let green = to_rgb_value(ensure_in_range(temporary_g), temp_1, temp_2);
-        let blue = to_rgb_value(ensure_in_range(temporary_b), temp_1, temp_2);
+        let red = to_rgb_value(temporary_r, temp_1, temp_2);
+        let green = to_rgb_value(temporary_g, temp_1, temp_2);
+        let blue = to_rgb_value(temporary_b, temp_1, temp_2);
 
         RGB {
             r: Ratio::from_f32(red),
@@ -431,37 +430,26 @@ impl Color for HSL {
 }
 
 // A function to convert an HSL value (either h, s, or l) into the equivalent, valid RGB value.
-fn to_rgb_value(value: f32, temp_1: f32, temp_2: f32) -> f32 {
-    let converted: f32;
-
-    // Check whether temporary variable * 6 is larger than one.
-    if value * 6.0 > 1.0 {
-        // If it is larger than 1, check it's product with 2.
-        if value * 2.0 > 1.0 {
-            // If it is large than 1, check it's product with 3.
-            if value * 3.0 > 2.0 {
-                converted = temp_2;
+fn to_rgb_value(val: u16, temp_1: f32, temp_2: f32) -> f32 {
+    let value = val as f32 / 360.0;
+    // Check whether temporary variable is larger than 1/6th.
+    if value > (1.0 / 6.0) {
+        // If it's larger than 1/6th, then check whether if it's larger than 1/2 or not.
+        if value > (1.0 / 2.0) {
+            if value > (2.0 / 3.0) {
+                // If it's larger than 1/2 and also larger than 2/3rds, set the value to temp_2.
+                temp_2
             } else {
-                converted = temp_2 + ((temp_1 - temp_2) * ((2.0 / 3.0) - value) * 6.0);
+                // Otherwise, if it's larger than 1/2 but less than 2/3rds, do some math.
+                temp_2 + ((temp_1 - temp_2) * ((2.0 / 3.0) - value) * 6.0)
             }
         } else {
-            converted = temp_1;
+            // If the value is smaller than 1/6th, set the value to temp_1.
+            temp_1
         }
     } else {
-        converted = temp_2 + ((temp_1 - temp_2) * value * 6.0);
-    }
-
-    converted
-}
-
-// A function to ensure that a value is always within a range of 0.0 - 1.0.
-fn ensure_in_range(value: f32) -> f32 {
-    if value > 1.0 {
-        value - 1.0
-    } else if value < 0.0 {
-        value + 1.0
-    } else {
-        value
+        // If it's smaller than 1/6th, do some math.
+        temp_2 + ((temp_1 - temp_2) * value * 6.0)
     }
 }
 
