@@ -110,6 +110,12 @@ pub trait Color {
     fn mix(self, other: RGBA, weight: u8) -> RGBA;
 
     // TODO: document
+    fn tint(self, weight: u8) -> RGBA;
+
+    // TODO: document
+    fn shade(self, weight: u8) -> RGBA;
+
+    // TODO: document
     fn greyscale(self) -> Self;
 }
 
@@ -296,7 +302,15 @@ impl Color for RGB {
     }
 
     fn mix(self, other: RGBA, weight: u8) -> RGBA {
-        other
+        self.to_rgba().mix(other, weight)
+    }
+
+    fn tint(self, weight: u8) -> RGBA {
+        unimplemented!("need to make this work")
+    }
+
+    fn shade(self, weight: u8) -> RGBA {
+        unimplemented!("need to make this work")
     }
 
     fn greyscale(self) -> Self {
@@ -464,6 +478,16 @@ impl Color for RGBA {
         // a = color1.alpha - color2.alpha
 
         RGBA { r, g, b, a }
+    }
+
+    fn tint(self, weight: u8) -> RGBA {
+        // same as calling mix(#ffffff, @color, @weight)
+        unimplemented!("need to make this work")
+    }
+
+    fn shade(self, weight: u8) -> RGBA {
+        // same as calling mix(#000000, @color, @weight)
+        unimplemented!("need to make this work")
     }
 
     fn greyscale(self) -> Self {
@@ -655,7 +679,15 @@ impl Color for HSL {
     }
 
     fn mix(self, other: RGBA, weight: u8) -> RGBA {
-        other.to_rgba()
+        self.to_rgba().mix(other, weight)
+    }
+
+    fn tint(self, weight: u8) -> RGBA {
+        self.to_rgba().tint(weight)
+    }
+
+    fn shade(self, weight: u8) -> RGBA {
+        self.to_rgba().shade(weight)
     }
 
     fn greyscale(self) -> Self {
@@ -844,7 +876,15 @@ impl Color for HSLA {
     }
 
     fn mix(self, other: RGBA, weight: u8) -> RGBA {
-        other
+        self.to_rgba().mix(other, weight)
+    }
+
+    fn tint(self, weight: u8) -> RGBA {
+        self.to_rgba().tint(weight)
+    }
+
+    fn shade(self, weight: u8) -> RGBA {
+        self.to_rgba().shade(weight)
     }
 
     fn greyscale(self) -> Self {
@@ -1298,13 +1338,29 @@ mod css_color_tests {
 
     #[test]
     fn can_mix() {
-        // use self::conversions::ApproximatelyEq;
+        use self::conversions::ApproximatelyEq;
 
-        // let red = RGBA::new(100, 0, 0, 255);
-        // let blue = RGBA::new(0, 100, 0, 128);
-        // let purple = RGBA::new(75, 25, 0, 64);
+        let red = RGBA::new(100, 0, 0, 255);
+        let green = RGBA::new(0, 100, 0, 128);
+        let brown = RGBA::new(75, 25, 0, 64);
 
-        // assert_approximately_eq!(red.mix(blue, 128), purple);
+        assert_approximately_eq!(red.mix(green, 128), brown);
+    }
+
+    #[test]
+    fn can_tint() {
+        let rgba_color = RGBA::new(0, 0, 255, 128);
+        let rgba_color_tinted = RGBA::new(191, 191, 255, 191);
+
+        assert_eq!(rgba_color.shade(128), rgba_color_tinted);
+    }
+
+    #[test]
+    fn can_shade() {
+        let rgba_color = RGBA::new(0, 0, 255, 128);
+        let rgba_color_shaded = RGBA::new(0, 0, 64, 191);
+
+        assert_eq!(rgba_color.shade(128), rgba_color_shaded);
     }
 
     #[test]
