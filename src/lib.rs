@@ -432,23 +432,18 @@ impl Color for HSL {
 // A function to convert an HSL value (either h, s, or l) into the equivalent, valid RGB value.
 fn to_rgb_value(val: u16, temp_1: f32, temp_2: f32) -> f32 {
     let value = val as f32 / 360.0;
-    // Check whether temporary variable is larger than 1/6th.
-    if value > (1.0 / 6.0) {
-        // If it's larger than 1/6th, then check whether if it's larger than 1/2 or not.
-        if value > (1.0 / 2.0) {
-            if value > (2.0 / 3.0) {
-                // If it's larger than 1/2 and also larger than 2/3rds, set the value to temp_2.
-                temp_2
-            } else {
-                // Otherwise, if it's larger than 1/2 but less than 2/3rds, do some math.
-                temp_2 + ((temp_1 - temp_2) * ((2.0 / 3.0) - value) * 6.0)
-            }
-        } else {
-            // If the value is smaller than 1/6th, set the value to temp_1.
-            temp_1
-        }
+
+    if value > (2.0 / 3.0) {
+        // value > 0.66667
+        temp_2
+    } else if value > (1.0 / 2.0) {
+        // value is between 0.5 and 0.66667
+        temp_2 + ((temp_1 - temp_2) * ((2.0 / 3.0) - value) * 6.0)
+    } else if value > (1.0 / 6.0) {
+        // value is between 0.16667 and 0.5
+        temp_1
     } else {
-        // If it's smaller than 1/6th, do some math.
+        // value <= 0.16667
         temp_2 + ((temp_1 - temp_2) * value * 6.0)
     }
 }
