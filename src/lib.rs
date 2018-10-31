@@ -105,6 +105,12 @@ pub trait Color {
 
     // TODO: document
     fn spin(self, amount: i16) -> RGB;
+
+    // TODO: document
+    fn mix(self, other: RGBA, weight: u8) -> RGBA;
+
+    // TODO: document
+    fn greyscale(self) -> Self;
 }
 
 #[derive(Debug, Copy, Clone, PartialEq)]
@@ -288,6 +294,14 @@ impl Color for RGB {
     fn spin(self, amount: i16) -> Self {
         self.to_hsl().spin(amount).to_rgb()
     }
+
+    fn mix(self, other: RGBA, weight: u8) -> RGBA {
+        other
+    }
+
+    fn greyscale(self) -> Self {
+        self.to_hsl().greyscale().to_rgb()
+    }
 }
 
 #[derive(Debug, Copy, Clone, PartialEq)]
@@ -387,11 +401,6 @@ impl Color for RGBA {
     fn fadein(self, amount: u8) -> Self {
         let RGBA { r, g, b, a } = self;
 
-        // TODO: what if overflow happens?
-        // if self.a == 255 {
-        //     return self;
-        // }
-
         RGBA {
             r,
             g,
@@ -419,6 +428,46 @@ impl Color for RGBA {
 
     fn spin(self, amount: i16) -> RGB {
         self.to_hsl().spin(amount).to_rgb()
+    }
+
+    //   # This algorithm factors in both the user-provided weight (w) and the
+    //   # difference between the alpha values of the two colors (a) to decide how
+    //   # to perform the weighted average of the two RGB values.
+    //   #
+    //   # It works by first normalizing both parameters to be within [-1, 1],
+    //   # where 1 indicates "only use color1", -1 indicates "only use color2", and
+    //   # all values in between indicated a proportionately weighted average.
+    //   #
+    //   # Once we have the normalized variables w and a, we apply the formula
+    //   # (w + a)/(1 + w*a) to get the combined weight (in [-1, 1]) of color1.
+    //   # This formula has two especially nice properties:
+    //   #
+    //   #   * When either w or a are -1 or 1, the combined weight is also that number
+    //   #     (cases where w * a == -1 are undefined, and handled as a special case).
+    //   #
+    //   #   * When a is 0, the combined weight is w, and vice versa.
+    //   #
+    //   # Finally, the weight of color1 is renormalized to be within [0, 1]
+    //   # and the weight of color2 is given by 1 minus the weight of color1.
+    fn mix(self, other: RGBA, weight: u8) -> Self {
+        let RGBA { r, g, b, a } = self;
+        let RGBA {
+            r: other_r,
+            g: other_g,
+            b: other_b,
+            a: other_a,
+        } = other;
+
+        // let w = Ratio::from_percentage(weight);
+
+        // w = p * 2 - 1
+        // a = color1.alpha - color2.alpha
+
+        RGBA { r, g, b, a }
+    }
+
+    fn greyscale(self) -> Self {
+        self.to_hsl().greyscale().to_rgba()
     }
 }
 
@@ -604,6 +653,20 @@ impl Color for HSL {
 
         HSL { h: new_hue, s, l }.to_rgb()
     }
+
+    fn mix(self, other: RGBA, weight: u8) -> RGBA {
+        other.to_rgba()
+    }
+
+    fn greyscale(self) -> Self {
+        let HSL { h, s: _, l } = self;
+
+        HSL {
+            h,
+            s: Ratio::from_percentage(0),
+            l,
+        }
+    }
 }
 
 // A function to convert an HSL value (either h, s, or l) into the equivalent, valid RGB value.
@@ -751,13 +814,6 @@ impl Color for HSLA {
     fn fadein(self, amount: u8) -> Self {
         let HSLA { h, s, l, a } = self;
 
-        // TODO: what if overflow happens?
-        // if self.a == 255 {
-        //     return self;
-        // }
-
-        // panic!("a: {}, amount: {}, a + amount: {}", a, amount, a + amount);
-
         HSLA {
             h,
             s,
@@ -785,6 +841,14 @@ impl Color for HSLA {
 
     fn spin(self, amount: i16) -> RGB {
         self.to_hsl().spin(amount).to_rgb()
+    }
+
+    fn mix(self, other: RGBA, weight: u8) -> RGBA {
+        other
+    }
+
+    fn greyscale(self) -> Self {
+        self.to_hsl().greyscale().to_hsla()
     }
 }
 
@@ -1230,6 +1294,30 @@ mod css_color_tests {
         assert_approximately_eq!(hsla_color.spin(30), RGB::new(242, 166, 13));
         assert_approximately_eq!(hsl_color.spin(-30), RGB::new(242, 13, 89));
         assert_approximately_eq!(hsla_color.spin(-30), RGB::new(242, 13, 89));
+    }
+
+    #[test]
+    fn can_mix() {
+        // use self::conversions::ApproximatelyEq;
+
+        // let red = RGBA::new(100, 0, 0, 255);
+        // let blue = RGBA::new(0, 100, 0, 128);
+        // let purple = RGBA::new(75, 25, 0, 64);
+
+        // assert_approximately_eq!(red.mix(blue, 128), purple);
+    }
+
+    #[test]
+    fn can_greyscale() {
+        let rgb_color = RGB::new(128, 242, 13);
+        let rgba_color = RGBA::new(128, 242, 13, 255);
+        let hsl_color = HSL::new(90, 90, 50);
+        let hsla_color = HSLA::new(90, 90, 50, 255);
+
+        assert_eq!(rgb_color.greyscale(), RGB::new(128, 128, 128));
+        assert_eq!(rgba_color.greyscale(), RGBA::new(128, 128, 128, 255));
+        assert_eq!(hsl_color.greyscale(), HSL::new(90, 0, 50));
+        assert_eq!(hsla_color.greyscale(), HSLA::new(90, 0, 50, 255));
     }
 
     #[test]
