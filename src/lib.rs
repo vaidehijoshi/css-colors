@@ -851,6 +851,16 @@ mod css_color_tests {
         conversion_test!(pink, rgb(253, 216, 229), hsl(339, 90, 92));
         conversion_test!(brown, rgb(172, 96, 83), hsl(9, 35, 50));
         conversion_test!(teal, rgb(23, 98, 119), hsl(193, 68, 28));
+        conversion_test!(green, rgb(89, 161, 54), hsl(100, 50, 42));
+        conversion_test!(pale_blue, rgb(148, 189, 209), hsl(200, 40, 70));
+        conversion_test!(mauve, rgb(136, 102, 153), hsl(280, 20, 50));
+        conversion_test!(cherry, rgb(230, 25, 60), hsl(350, 80, 50));
+        conversion_test!(tomato, rgb(255, 99, 71), hsl(9, 100, 64));
+        conversion_test!(light_salmon, rgb(255, 160, 122), hsl(17, 100, 74));
+        conversion_test!(blue_violet, rgb(138, 43, 226), hsl(271, 76, 53));
+        conversion_test!(dark_orange, rgb(255, 140, 0), hsl(33, 100, 50));
+        conversion_test!(deep_pink, rgb(255, 20, 147), hsl(328, 100, 54));
+        conversion_test!(chartreuse, rgb(127, 255, 0), hsl(90, 100, 50));
     }
 
     #[test]
