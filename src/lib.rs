@@ -608,12 +608,56 @@ impl Color for RGBA {
             a: other_a,
         } = other;
 
-        // let w = Ratio::from_percentage(weight);
+        // TODO: figure out how to default to 50.
+        // if (!weight) {
+        //     weight = new Dimension(50);
+        // }
 
-        // w = p * 2 - 1
-        // a = color1.alpha - color2.alpha
+        // var p = weight.value / 100.0;
+        let p = Ratio::from_u8(weight).as_f32();
 
-        RGBA { r, g, b, a }
+        // var w = p * 2 - 1;
+        let w = (p * 2.0 - 1.0).round();
+
+        // var a = color1.toHSL().a - color2.toHSL().a;
+        let new_a = Ratio::from_u8(self.a - other_a).as_f32();
+
+        panic!("w: {}, p: {}, new_a: {}", w, p, new_a);
+
+        // let w1 = (((w * a == -1) ? w : (w + a) / (1 + w * a)) + 1) / 2.0;
+        let w1 = if w * new_a == -1.0 {
+            w
+        } else {
+            (w + new_a) / (((1.0 + w) * new_a) + 1.0) / 2.0
+        };
+
+        let w2 = 1.0 - w1;
+
+        // var rgb = [color1.rgb[0] * w1 + color2.rgb[0] * w2,
+        //     color1.rgb[1] * w1 + color2.rgb[1] * w2,
+        //     color1.rgb[1] * w1 + color2.rgb[1] * w2;
+
+        let mixed_r = (self.r.as_f32() * w1) + (other_r.as_f32() * w2);
+        let mixed_g = (self.g.as_f32() * w1) + (other_g.as_f32() * w2);
+        let mixed_b = (self.b.as_f32() * w1) + (other_b.as_f32() * w2);
+
+        let mixed_alpha = ((self.a as f32 / 255.0) * p) + ((other_a as f32 / 255.0) * (1.0 - p));
+
+        // panic!("w: {}, p: {}, a: {}, w1: {}, w2: {}", w, p, a, w1, w2);
+        // panic!(
+        //     "mixed_r: {}, mixed_g: {}, mixed_b: {}, mixed_alpha: {}",
+        //     Ratio::from_f32(mixed_r),
+        //     Ratio::from_f32(mixed_g),
+        //     Ratio::from_f32(mixed_b),
+        //     Ratio::from_f32(mixed_alpha).as_u8()
+        // );
+
+        RGBA {
+            r: Ratio::from_f32(mixed_r),
+            g: Ratio::from_f32(mixed_g),
+            b: Ratio::from_f32(mixed_b),
+            a: Ratio::from_f32(mixed_alpha).as_u8(),
+        }
     }
 
     fn tint(self, weight: u8) -> RGBA {
