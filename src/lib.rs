@@ -227,7 +227,7 @@ pub trait Color {
     /// For more, see Less' [Color Operations](http://lesscss.org/functions/#color-operations-tint).
     ///
     /// # TODO: Examples
-    fn tint(self, weight: u8) -> RGBA;
+    fn tint(self, weight: Ratio) -> RGBA;
 
     /// Mixes `self` with white in variable proportion.
     /// Equivalent to calling `mix()` with `black` (`rgb(0, 0, 0)`).
@@ -236,7 +236,7 @@ pub trait Color {
     /// For more, see Less' [Color Operations](http://lesscss.org/functions/#color-operations-shade).
     ///
     /// # TODO: Examples
-    fn shade(self, weight: u8) -> RGBA;
+    fn shade(self, weight: Ratio) -> RGBA;
 
     /// Remove all saturation from `self` in the HSL color space.
     /// Equivalent to calling `desaturate(0)` on a color.
@@ -441,11 +441,11 @@ impl Color for RGB {
         self.to_rgba().mix(other, weight)
     }
 
-    fn tint(self, weight: u8) -> RGBA {
+    fn tint(self, weight: Ratio) -> RGBA {
         unimplemented!("need to make this work")
     }
 
-    fn shade(self, weight: u8) -> RGBA {
+    fn shade(self, weight: Ratio) -> RGBA {
         unimplemented!("need to make this work")
     }
 
@@ -661,14 +661,16 @@ impl Color for RGBA {
         }
     }
 
-    fn tint(self, weight: u8) -> RGBA {
+    fn tint(self, weight: Ratio) -> RGBA {
         // same as calling mix(#ffffff, @color, @weight)
-        unimplemented!("need to make this work")
+        let white = RGBA::new(255, 255, 255, 255);
+        self.mix(white, weight)
     }
 
-    fn shade(self, weight: u8) -> RGBA {
+    fn shade(self, weight: Ratio) -> RGBA {
         // same as calling mix(#000000, @color, @weight)
-        unimplemented!("need to make this work")
+        let black = RGBA::new(0, 0, 0, 255);
+        self.mix(black, weight)
     }
 
     fn greyscale(self) -> Self {
@@ -863,11 +865,11 @@ impl Color for HSL {
         self.to_rgba().mix(other, weight)
     }
 
-    fn tint(self, weight: u8) -> RGBA {
+    fn tint(self, weight: Ratio) -> RGBA {
         self.to_rgba().tint(weight)
     }
 
-    fn shade(self, weight: u8) -> RGBA {
+    fn shade(self, weight: Ratio) -> RGBA {
         self.to_rgba().shade(weight)
     }
 
@@ -1060,11 +1062,11 @@ impl Color for HSLA {
         self.to_rgba().mix(other, weight)
     }
 
-    fn tint(self, weight: u8) -> RGBA {
+    fn tint(self, weight: Ratio) -> RGBA {
         self.to_rgba().tint(weight)
     }
 
-    fn shade(self, weight: u8) -> RGBA {
+    fn shade(self, weight: Ratio) -> RGBA {
         self.to_rgba().shade(weight)
     }
 
@@ -1555,7 +1557,10 @@ mod css_color_tests {
         let rgba_color = RGBA::new(0, 0, 255, 128);
         let rgba_color_tinted = RGBA::new(191, 191, 255, 191);
 
-        assert_eq!(rgba_color.shade(128), rgba_color_tinted);
+        assert_eq!(
+            rgba_color.tint(Ratio::from_percentage(50)),
+            rgba_color_tinted
+        );
     }
 
     #[test]
@@ -1563,7 +1568,10 @@ mod css_color_tests {
         let rgba_color = RGBA::new(0, 0, 255, 128);
         let rgba_color_shaded = RGBA::new(0, 0, 64, 191);
 
-        assert_eq!(rgba_color.shade(128), rgba_color_shaded);
+        assert_eq!(
+            rgba_color.shade(Ratio::from_percentage(50)),
+            rgba_color_shaded
+        );
     }
 
     #[test]
