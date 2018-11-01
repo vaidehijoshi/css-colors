@@ -63,7 +63,7 @@ impl ops::Mul for Ratio {
     type Output = Option<Ratio>;
 
     fn mul(self, other: Ratio) -> Option<Ratio> {
-        self.0.checked_mul(other.0).map(|total| Ratio(total))
+        Some(Ratio::from_f32(self.as_f32() * other.as_f32()))
     }
 }
 
@@ -71,7 +71,13 @@ impl ops::Div for Ratio {
     type Output = Option<Ratio>;
 
     fn div(self, other: Ratio) -> Option<Ratio> {
-        self.0.checked_div(other.0).map(|total| Ratio(total))
+        let result = self.as_f32() / other.as_f32();
+
+        if result >= 0.0 && result <= 1.0 {
+            Some(Ratio::from_f32(result))
+        } else {
+            None
+        }
     }
 }
 
@@ -102,7 +108,7 @@ mod tests {
             None
         );
         assert_eq!(
-            Ratio::from_percentage(50) * Ratio::from_percentage(55),
+            Ratio::from_percentage(55) / Ratio::from_percentage(50),
             None
         );
     }
@@ -111,7 +117,7 @@ mod tests {
     fn handles_overflow_f32() {
         assert_eq!(Ratio::from_f32(0.75) + Ratio::from_f32(0.75), None);
         assert_eq!(Ratio::from_f32(0.25) - Ratio::from_f32(0.75), None);
-        assert_eq!(Ratio::from_f32(0.07) * Ratio::from_f32(0.06), None);
+        assert_eq!(Ratio::from_f32(0.75) / Ratio::from_f32(0.25), None);
     }
 
     #[test]
@@ -136,24 +142,42 @@ mod tests {
 
     #[test]
     fn multiplies_percentage() {
-        let a = Ratio::from_percentage(10);
-        let b = Ratio::from_percentage(1);
-        let c = Ratio::from_percentage(2);
+        let a = Ratio::from_percentage(100);
+        let b = Ratio::from_percentage(50);
+        let c = Ratio::from_percentage(20);
 
-        assert_eq!((b * c).unwrap(), Ratio::from_u8(15));
-        assert_eq!((c * c).unwrap(), Ratio::from_u8(25));
-        assert_eq!((a * b).unwrap(), Ratio::from_u8(78));
+        assert_eq!((a * a).unwrap(), Ratio::from_percentage(100));
+        assert_eq!((b * b).unwrap(), Ratio::from_percentage(25));
+        assert_eq!((c * c).unwrap(), Ratio::from_percentage(4));
+
+        assert_eq!((a * b).unwrap(), Ratio::from_percentage(50));
+        assert_eq!((b * a).unwrap(), Ratio::from_percentage(50));
+
+        assert_eq!((a * c).unwrap(), Ratio::from_percentage(20));
+        assert_eq!((c * a).unwrap(), Ratio::from_percentage(20));
+
+        assert_eq!((b * c).unwrap(), Ratio::from_percentage(10));
+        assert_eq!((c * b).unwrap(), Ratio::from_percentage(10));
     }
 
     #[test]
     fn divides_percentage() {
-        let a = Ratio::from_percentage(45);
-        let b = Ratio::from_percentage(10);
-        let c = Ratio::from_percentage(1);
+        let a = Ratio::from_percentage(100);
+        let b = Ratio::from_percentage(50);
+        let c = Ratio::from_percentage(20);
 
-        assert_eq!((b / c).unwrap(), Ratio::from_u8(8));
-        assert_eq!((a / c).unwrap(), Ratio::from_u8(38));
-        assert_eq!((a / b).unwrap(), Ratio::from_u8(4));
+        assert_eq!((a / a).unwrap(), Ratio::from_percentage(100));
+        assert_eq!((b / b).unwrap(), Ratio::from_percentage(100));
+        assert_eq!((c / c).unwrap(), Ratio::from_percentage(100));
+
+        assert_eq!(a / b, None);
+        assert_eq!((b / a).unwrap(), Ratio::from_percentage(50));
+
+        assert_eq!(a / c, None);
+        assert_eq!((c / a).unwrap(), Ratio::from_percentage(20));
+
+        assert_eq!(b / c, None);
+        assert_eq!((c / b).unwrap(), Ratio::from_percentage(40));
     }
 
     #[test]
@@ -181,11 +205,11 @@ mod tests {
 
     #[test]
     fn multiplies_f32() {
-        let a = Ratio::from_f32(0.01);
-        let b = Ratio::from_f32(0.02);
+        let a = Ratio::from_f32(0.5);
+        let b = Ratio::from_f32(0.25);
 
-        assert_eq!((a * b).unwrap(), Ratio::from_u8(15));
-        assert_eq!((a * a).unwrap(), Ratio::from_u8(9));
+        assert_eq!((a * b).unwrap(), Ratio::from_f32(0.125));
+        assert_eq!((a * a).unwrap(), Ratio::from_f32(0.25));
         // assert_eq!((a * a).unwrap(), Ratio::from_f32(0.0001));
     }
 
@@ -193,9 +217,10 @@ mod tests {
     fn divides_f32() {
         let a = Ratio::from_f32(0.25);
         let b = Ratio::from_f32(0.50);
-        let c = Ratio::from_f32(0.75);
+        let c = Ratio::from_f32(1.00);
 
-        assert_eq!((b / a).unwrap(), Ratio::from_u8(2));
-        assert_eq!((c / b).unwrap(), Ratio::from_u8(1));
+        assert_eq!((a / b).unwrap(), Ratio::from_f32(0.5));
+        assert_eq!((a / c).unwrap(), Ratio::from_f32(0.25));
+        assert_eq!((b / c).unwrap(), Ratio::from_f32(0.5));
     }
 }

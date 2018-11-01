@@ -218,7 +218,7 @@ pub trait Color {
     /// For more, see Less' [Color Operations](http://lesscss.org/functions/#color-operations-mix).
     ///
     /// # TODO: Examples
-    fn mix(self, other: RGBA, weight: u8) -> RGBA;
+    fn mix(self, other: RGBA, weight: Ratio) -> RGBA;
 
     /// Mixes `self` with white in variable proportion.
     /// Equivalent to calling `mix()` with `white` (`rgb(255, 255, 255)`).
@@ -437,7 +437,7 @@ impl Color for RGB {
         self.to_hsl().spin(amount).to_rgb()
     }
 
-    fn mix(self, other: RGBA, weight: u8) -> RGBA {
+    fn mix(self, other: RGBA, weight: Ratio) -> RGBA {
         self.to_rgba().mix(other, weight)
     }
 
@@ -599,64 +599,65 @@ impl Color for RGBA {
     //   #
     //   # Finally, the weight of color1 is renormalized to be within [0, 1]
     //   # and the weight of color2 is given by 1 minus the weight of color1.
-    fn mix(self, other: RGBA, weight: u8) -> Self {
-        let RGBA { r, g, b, a } = self;
+    fn mix(self, other: RGBA, weight: Ratio) -> Self {
         let RGBA {
-            r: other_r,
-            g: other_g,
-            b: other_b,
-            a: other_a,
+            r: r_lhs,
+            g: g_lhs,
+            b: b_lhs,
+            a: a_lhs,
+        } = self;
+
+        let RGBA {
+            r: r_rhs,
+            g: g_rhs,
+            b: b_rhs,
+            a: a_rhs,
         } = other;
 
-        // TODO: figure out how to default to 50.
-        // if (!weight) {
-        //     weight = new Dimension(50);
-        // }
+        // FIXME: alpha should be ratio
+        let a_lhs = Ratio::from_u8(a_lhs);
+        let a_rhs = Ratio::from_u8(a_rhs);
 
-        // var p = weight.value / 100.0;
-        let p = Ratio::from_u8(weight).as_f32();
+        // weigh: [0, 1]
+        let w = weight.as_f32();
 
-        // var w = p * 2 - 1;
-        let w = (p * 2.0 - 1.0).round();
+        // weight: [0, 2]
+        let w = w * 2.0;
 
-        // var a = color1.toHSL().a - color2.toHSL().a;
-        let new_a = Ratio::from_u8(self.a - other_a).as_f32();
+        // weight: [-1, 1]
+        let w = w - 1.0;
 
-        panic!("w: {}, p: {}, new_a: {}", w, p, new_a);
+        // alpha difference: [-1, 1]
+        let a = a_lhs.as_f32() - a_rhs.as_f32();
 
-        // let w1 = (((w * a == -1) ? w : (w + a) / (1 + w * a)) + 1) / 2.0;
-        let w1 = if w * new_a == -1.0 {
+        // combined rgb weight: [-1, 1]
+        let rgb_weight = if w * a == -1.0 {
             w
         } else {
-            (w + new_a) / (((1.0 + w) * new_a) + 1.0) / 2.0
+            (w + a) / (1.0 + w * a)
         };
 
-        let w2 = 1.0 - w1;
+        // combined rgb weight: [0, 2]
+        let rgb_weight = rgb_weight + 1.0;
 
-        // var rgb = [color1.rgb[0] * w1 + color2.rgb[0] * w2,
-        //     color1.rgb[1] * w1 + color2.rgb[1] * w2,
-        //     color1.rgb[1] * w1 + color2.rgb[1] * w2;
+        // combined rgb weight: [0, 1]
+        let rgb_weight = rgb_weight / 2.0;
 
-        let mixed_r = (self.r.as_f32() * w1) + (other_r.as_f32() * w2);
-        let mixed_g = (self.g.as_f32() * w1) + (other_g.as_f32() * w2);
-        let mixed_b = (self.b.as_f32() * w1) + (other_b.as_f32() * w2);
+        // in ratios...
+        let rgb_weight_lhs = Ratio::from_f32(rgb_weight);
+        let rgb_weight_rhs = (Ratio::from_f32(1.0) - rgb_weight_lhs).unwrap();
 
-        let mixed_alpha = ((self.a as f32 / 255.0) * p) + ((other_a as f32 / 255.0) * (1.0 - p));
-
-        // panic!("w: {}, p: {}, a: {}, w1: {}, w2: {}", w, p, a, w1, w2);
-        // panic!(
-        //     "mixed_r: {}, mixed_g: {}, mixed_b: {}, mixed_alpha: {}",
-        //     Ratio::from_f32(mixed_r),
-        //     Ratio::from_f32(mixed_g),
-        //     Ratio::from_f32(mixed_b),
-        //     Ratio::from_f32(mixed_alpha).as_u8()
-        // );
+        let alpha_weight_lhs = weight;
+        let alpha_weight_rhs = (Ratio::from_f32(1.0) - alpha_weight_lhs).unwrap();
 
         RGBA {
-            r: Ratio::from_f32(mixed_r),
-            g: Ratio::from_f32(mixed_g),
-            b: Ratio::from_f32(mixed_b),
-            a: Ratio::from_f32(mixed_alpha).as_u8(),
+            r: ((r_lhs * rgb_weight_lhs).unwrap() + (r_rhs * rgb_weight_rhs).unwrap()).unwrap(),
+            g: ((g_lhs * rgb_weight_lhs).unwrap() + (g_rhs * rgb_weight_rhs).unwrap()).unwrap(),
+            b: ((b_lhs * rgb_weight_lhs).unwrap() + (b_rhs * rgb_weight_rhs).unwrap()).unwrap(),
+            // FIXME: alpha should be ratio
+            a: ((a_lhs * alpha_weight_lhs).unwrap() + (a_rhs * alpha_weight_rhs).unwrap())
+                .unwrap()
+                .as_u8(),
         }
     }
 
@@ -858,7 +859,7 @@ impl Color for HSL {
         HSL { h: new_hue, s, l }.to_rgb()
     }
 
-    fn mix(self, other: RGBA, weight: u8) -> RGBA {
+    fn mix(self, other: RGBA, weight: Ratio) -> RGBA {
         self.to_rgba().mix(other, weight)
     }
 
@@ -1055,7 +1056,7 @@ impl Color for HSLA {
         self.to_hsl().spin(amount).to_rgb()
     }
 
-    fn mix(self, other: RGBA, weight: u8) -> RGBA {
+    fn mix(self, other: RGBA, weight: Ratio) -> RGBA {
         self.to_rgba().mix(other, weight)
     }
 
@@ -1521,10 +1522,32 @@ mod css_color_tests {
         use self::conversions::ApproximatelyEq;
 
         let red = RGBA::new(100, 0, 0, 255);
-        let green = RGBA::new(0, 100, 0, 128);
-        let brown = RGBA::new(75, 25, 0, 64);
+        let green = RGBA::new(0, 100, 0, 255);
+        let brown = RGBA::new(50, 50, 0, 255);
 
-        assert_approximately_eq!(red.mix(green, 128), brown);
+        assert_approximately_eq!(red.mix(green, Ratio::from_percentage(50)), brown);
+    }
+
+    #[test]
+    fn can_mix_single_color() {
+        use self::conversions::ApproximatelyEq;
+
+        let red = RGBA::new(100, 0, 0, 255);
+        let green = RGBA::new(0, 100, 0, 127);
+
+        assert_approximately_eq!(red.mix(green, Ratio::from_percentage(100)), red);
+        assert_approximately_eq!(red.mix(green, Ratio::from_percentage(0)), green);
+    }
+
+    #[test]
+    fn can_mix_with_alpha() {
+        use self::conversions::ApproximatelyEq;
+
+        let red = RGBA::new(100, 0, 0, 255);
+        let green = RGBA::new(0, 100, 0, 127);
+        let brown = RGBA::new(75, 25, 0, 191);
+
+        assert_approximately_eq!(red.mix(green, Ratio::from_percentage(50)), brown);
     }
 
     #[test]
