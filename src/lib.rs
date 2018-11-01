@@ -12,7 +12,7 @@ pub trait Color {
     ///
     /// # Examples
     /// ```
-    /// use css_colors::{Color, RGB, RGBA, ratio::Ratio as Ratio};
+    /// use css_colors::{Color, RGB, RGBA};
     ///
     /// let salmon = RGB::new(250, 128, 114);
     /// let opaque_salmon = RGBA::new(250, 128, 114, 128);
@@ -28,7 +28,7 @@ pub trait Color {
     ///
     /// # Examples
     /// ```
-    /// use css_colors::{Color, RGB, RGBA, ratio::Ratio as Ratio};
+    /// use css_colors::{Color, RGB, RGBA};
     ///
     /// let opaque_tomato = RGBA::new(255, 99, 71, 128);
     ///
@@ -42,7 +42,7 @@ pub trait Color {
     ///
     /// # Examples
     /// ```
-    /// use css_colors::{Color, RGB, RGBA, ratio::Ratio as Ratio};
+    /// use css_colors::{Color, RGB, RGBA};
     ///
     /// let tomato = RGB::new(255, 99, 71);
     ///
@@ -56,7 +56,7 @@ pub trait Color {
     ///
     /// # Examples
     /// ```
-    /// use css_colors::{Color, RGB, RGBA, HSL, angle::Angle as Angle, ratio::Ratio as Ratio};
+    /// use css_colors::{Color, RGB, RGBA, HSL};
     ///
     /// let tomato = RGB::new(255, 99, 71);
     /// let opaque_tomato = RGBA::new(255, 99, 71, 128);
@@ -72,7 +72,7 @@ pub trait Color {
     ///
     /// # Examples
     /// ```
-    /// use css_colors::{Color, RGB, RGBA, HSLA, angle::Angle as Angle, ratio::Ratio as Ratio};
+    /// use css_colors::{Color, RGB, RGBA, HSLA};
     ///
     /// let tomato = RGB::new(255, 99, 71);
     /// let opaque_tomato = RGBA::new(255, 99, 71, 128);
@@ -82,40 +82,176 @@ pub trait Color {
     /// ```
     fn to_hsla(self) -> HSLA;
 
-    // TODO: document
+    /// Increases the saturation of `self` by an absolute amount.
+    /// Operates on the color within its HSL representation and preserves any existing alpha channel.
+    /// For more, see Less' [Color Operations](http://lesscss.org/functions/#color-operations-saturate).
+    ///
+    /// # Examples
+    /// ```
+    /// use css_colors::{Color, RGB, HSLA};
+    ///
+    /// let salmon = HSLA::new(6, 93, 71, 255);
+    /// let cornflower_blue = RGB::new(100, 149, 237);
+    ///
+    /// assert_eq!(salmon.saturate(7), HSLA::new(6, 100, 71, 255));
+    /// assert_eq!(cornflower_blue.saturate(10), RGB::new(92, 146, 246));
+    /// ```
     fn saturate(self, amount: u8) -> Self;
 
-    // TODO: document
+    /// Decreases the saturation of `self` by an absolute amount.
+    /// Operates on the color within its HSL representation and preserves any existing alpha channel.
+    /// For more, see Less' [Color Operations](http://lesscss.org/functions/#color-operations-desaturate).
+    ///
+    /// # Examples
+    /// ```
+    /// use css_colors::{Color, RGB, RGBA};
+    ///
+    /// let tomato = RGBA::new(255, 99, 71, 255);
+    /// let cornflower_blue = RGB::new(100, 149, 237);
+    ///
+    /// assert_eq!(tomato.desaturate(10), RGBA::new(246, 105, 80, 255));
+    /// assert_eq!(cornflower_blue.desaturate(33), RGB::new(129, 157, 209));
+    /// ```
     fn desaturate(self, amount: u8) -> Self;
 
-    // TODO: document
+    /// Increases the lightness of `self` by an absolute amount.
+    /// Operates on the color within its HSL representation and preserves any existing alpha channel.
+    /// For more, see Less' [Color Operations](http://lesscss.org/functions/#color-operations-lighten).
+    ///
+    /// # Examples
+    /// ```
+    /// use css_colors::{Color, RGB, RGBA};
+    ///
+    /// let tomato = RGBA::new(255, 99, 71, 255);
+    /// let cornflower_blue = RGB::new(100, 149, 237);
+    ///
+    /// assert_eq!(tomato.lighten(20), RGBA::new(255, 185, 173, 255));
+    /// assert_eq!(cornflower_blue.lighten(33), RGB::new(251, 253, 255));
+    /// ```
     fn lighten(self, amount: u8) -> Self;
 
-    // TODO: document
+    /// Decreases the lightness of `self` by an absolute amount.
+    /// Operates on the color within its HSL representation and preserves any existing alpha channel.
+    /// For more, see Less' [Color Operations](http://lesscss.org/functions/#color-operations-darken).
+    ///
+    /// # Examples
+    /// ```
+    /// use css_colors::{Color, RGB, RGBA};
+    ///
+    /// let tomato = RGBA::new(255, 99, 71, 255);
+    /// let cornflower_blue = RGB::new(100, 149, 237);
+    ///
+    /// assert_eq!(tomato.darken(20), RGBA::new(224, 34, 0, 255));
+    /// assert_eq!(cornflower_blue.darken(33), RGB::new(18, 65, 152));
+    /// ```
     fn darken(self, amount: u8) -> Self;
 
-    // TODO: document
+    /// Decreases the transparency (or increase the opacity) of `self`, making it more opaque.
+    /// Has no effect on opaque (non-alpha) colors.
+    /// For more, see Less' [Color Operations](http://lesscss.org/functions/#color-operations-fadein).
+    ///
+    /// # Examples
+    /// ```
+    /// use css_colors::{Color, RGB, RGBA};
+    ///
+    /// let tomato = RGBA::new(255, 99, 71, 64);
+    /// let cornflower_blue = RGB::new(100, 149, 237);
+    ///
+    /// assert_eq!(tomato.fadein(64), RGBA::new(255, 99, 71, 128));
+    /// assert_eq!(cornflower_blue.fadein(128), RGB::new(100, 149, 237));
+    /// ```
     fn fadein(self, amount: u8) -> Self;
 
-    // TODO: document
+    /// Increases the transparency (or decrease the opacity) of `self`, making it less opaque.
+    /// Has no effect on opaque (non-alpha) colors.
+    /// For more, see Less' [Color Operations](http://lesscss.org/functions/#color-operations-fadeout).
+    ///
+    /// # Examples
+    /// ```
+    /// use css_colors::{Color, RGB, RGBA};
+    ///
+    /// let tomato = RGBA::new(255, 99, 71, 128);
+    /// let cornflower_blue = RGB::new(100, 149, 237);
+    ///
+    /// assert_eq!(tomato.fadeout(64), RGBA::new(255, 99, 71, 64));
+    /// assert_eq!(cornflower_blue.fadeout(128), RGB::new(100, 149, 237));
+    /// ```
     fn fadeout(self, amount: u8) -> Self;
 
-    // TODO: document
+    /// Sets the absolute opacity of `self`.
+    /// Can be applied to colors whether they already have an opacity value or not.
+    /// For more, see Less' [Color Operations](http://lesscss.org/functions/#color-operations-fade).
+    ///
+    /// # Examples
+    /// ```
+    /// use css_colors::{Color, RGB, RGBA};
+    ///
+    /// let tomato = RGBA::new(255, 99, 71, 128);
+    /// let cornflower_blue = RGB::new(100, 149, 237);
+    ///
+    /// assert_eq!(tomato.fade(25), RGBA::new(255, 99, 71, 25));
+    /// assert_eq!(cornflower_blue.fade(128), RGBA::new(100, 149, 237, 128));
+    /// ```
     fn fade(self, amount: u8) -> RGBA;
 
-    // TODO: document
+    /// Rotate the hue angle of `self` in either direction.
+    /// Returns the appropriate `RGB` representation of the color once it has been spun.
+    /// For more, see Less' [Color Operations](http://lesscss.org/functions/#color-operations-spin).
+    ///
+    /// # Examples
+    /// ```
+    /// use css_colors::{Color, RGB, HSL};
+    ///
+    /// let red = HSL::new(10, 90, 50);
+    /// let golden = RGB::new(243, 166, 13);
+    /// let pink = RGB::new(243, 13, 90);
+    ///
+    /// assert_eq!(red.spin(30), golden);
+    /// assert_eq!(red.spin(-30), pink);
+    /// ```
     fn spin(self, amount: i16) -> RGB;
 
-    // TODO: document
+    /// Mixes two colors (`self` and any other color) together in variable proportion.
+    /// Takes opacity into account in the calculations.
+    /// Optionally takes a percentage balance point between the two colors, and defaults to 50%.
+    /// Returns the appropriate `RGBA` representation of the color once it has been mixed.
+    /// For more, see Less' [Color Operations](http://lesscss.org/functions/#color-operations-mix).
+    ///
+    /// # TODO: Examples
     fn mix(self, other: RGBA, weight: u8) -> RGBA;
 
-    // TODO: document
+    /// Mixes `self` with white in variable proportion.
+    /// Equivalent to calling `mix()` with `white` (`rgb(255, 255, 255)`).
+    /// Optionally takes a percentage balance point between `self` and `white`, defaults to 50%.
+    /// Returns the appropriate `RGBA` representation of the color once it has been mixed.
+    /// For more, see Less' [Color Operations](http://lesscss.org/functions/#color-operations-tint).
+    ///
+    /// # TODO: Examples
     fn tint(self, weight: u8) -> RGBA;
 
-    // TODO: document
+    /// Mixes `self` with white in variable proportion.
+    /// Equivalent to calling `mix()` with `black` (`rgb(0, 0, 0)`).
+    /// Optionally takes a percentage balance point between `self` and `black`, defaults to 50%.
+    /// Returns the appropriate `RGBA` representation of the color once it has been mixed.
+    /// For more, see Less' [Color Operations](http://lesscss.org/functions/#color-operations-shade).
+    ///
+    /// # TODO: Examples
     fn shade(self, weight: u8) -> RGBA;
 
-    // TODO: document
+    /// Remove all saturation from `self` in the HSL color space.
+    /// Equivalent to calling `desaturate(0)` on a color.
+    /// For more, see Less' [Color Operations](http://lesscss.org/functions/#color-operations-greyscale).
+    ///
+    /// # Examples
+    /// ```
+    /// use css_colors::{Color, RGB, RGBA};
+    ///
+    /// let tomato = RGBA::new(255, 99, 71, 255);
+    /// let cornflower_blue = RGB::new(100, 149, 237);
+    ///
+    /// assert_eq!(tomato.greyscale(), RGBA::new(163, 163, 163, 255));
+    /// assert_eq!(cornflower_blue.greyscale(), RGB::new(169, 169, 169));
+    /// ```
     fn greyscale(self) -> Self;
 }
 
