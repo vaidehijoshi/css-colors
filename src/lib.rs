@@ -473,7 +473,7 @@ pub struct RGBA {
     pub b: Ratio,
 
     // alpha
-    pub a: u8,
+    pub a: Ratio,
 }
 
 impl fmt::Display for RGBA {
@@ -484,7 +484,7 @@ impl fmt::Display for RGBA {
             self.r.as_u8(),
             self.g.as_u8(),
             self.b.as_u8(),
-            self.a as f32 / 255.0
+            self.a.as_f32()
         )
     }
 }
@@ -498,14 +498,14 @@ impl RGBA {
     ///
     /// let light_salmon = RGBA::new(250, 128, 114, 128);
     ///
-    /// assert_eq!(light_salmon, RGBA { r: Ratio::from_u8(250), g: Ratio::from_u8(128), b: Ratio::from_u8(114), a: 128 });
+    /// assert_eq!(light_salmon, RGBA { r: Ratio::from_u8(250), g: Ratio::from_u8(128), b: Ratio::from_u8(114), a: Ratio::from_u8(128) });
     /// ```
     pub fn new(r: u8, g: u8, b: u8, a: u8) -> RGBA {
         RGBA {
             r: Ratio::from_u8(r),
             g: Ratio::from_u8(g),
             b: Ratio::from_u8(b),
-            a,
+            a: Ratio::from_u8(a),
         }
     }
 }
@@ -529,7 +529,12 @@ impl Color for RGBA {
 
     fn to_hsla(self) -> HSLA {
         let HSL { h, s, l } = self.to_hsl();
-        HSLA::new(h.degrees(), s.as_percentage(), l.as_percentage(), self.a)
+        HSLA::new(
+            h.degrees(),
+            s.as_percentage(),
+            l.as_percentage(),
+            self.a.as_u8(),
+        )
     }
 
     fn saturate(self, amount: u8) -> Self {
@@ -555,7 +560,7 @@ impl Color for RGBA {
             r,
             g,
             b,
-            a: a + amount,
+            a: (a + Ratio::from_u8(amount)).unwrap(),
         }
     }
 
@@ -566,14 +571,19 @@ impl Color for RGBA {
             r,
             g,
             b,
-            a: a - amount,
+            a: (a - Ratio::from_u8(amount)).unwrap(),
         }
     }
 
     fn fade(self, amount: u8) -> Self {
         let RGBA { r, g, b, a: _ } = self;
 
-        RGBA { r, g, b, a: amount }
+        RGBA {
+            r,
+            g,
+            b,
+            a: Ratio::from_u8(amount),
+        }
     }
 
     fn spin(self, amount: i16) -> RGB {
@@ -615,8 +625,8 @@ impl Color for RGBA {
         } = other;
 
         // FIXME: alpha should be ratio
-        let a_lhs = Ratio::from_u8(a_lhs);
-        let a_rhs = Ratio::from_u8(a_rhs);
+        let a_lhs = a_lhs;
+        let a_rhs = a_rhs;
 
         // weigh: [0, 1]
         let w = weight.as_f32();
@@ -655,20 +665,16 @@ impl Color for RGBA {
             g: ((g_lhs * rgb_weight_lhs).unwrap() + (g_rhs * rgb_weight_rhs).unwrap()).unwrap(),
             b: ((b_lhs * rgb_weight_lhs).unwrap() + (b_rhs * rgb_weight_rhs).unwrap()).unwrap(),
             // FIXME: alpha should be ratio
-            a: ((a_lhs * alpha_weight_lhs).unwrap() + (a_rhs * alpha_weight_rhs).unwrap())
-                .unwrap()
-                .as_u8(),
+            a: ((a_lhs * alpha_weight_lhs).unwrap() + (a_rhs * alpha_weight_rhs).unwrap()).unwrap(),
         }
     }
 
     fn tint(self, weight: Ratio) -> RGBA {
-        // same as calling mix(#ffffff, @color, @weight)
         let white = RGBA::new(255, 255, 255, 255);
         self.mix(white, weight)
     }
 
     fn shade(self, weight: Ratio) -> RGBA {
-        // same as calling mix(#000000, @color, @weight)
         let black = RGBA::new(0, 0, 0, 255);
         self.mix(black, weight)
     }
@@ -923,7 +929,7 @@ pub struct HSLA {
     pub l: Ratio,
 
     // alpha
-    pub a: u8,
+    pub a: Ratio,
 }
 
 impl fmt::Display for HSLA {
@@ -934,7 +940,7 @@ impl fmt::Display for HSLA {
             self.h,
             self.s,
             self.l,
-            self.a as f32 / 255.0
+            self.a.as_f32()
         )
     }
 }
@@ -947,14 +953,14 @@ impl HSLA {
     /// use {css_colors::HSLA, css_colors::angle::Angle as Angle, css_colors::ratio::Ratio as Ratio};
     /// let light_salmon = HSLA::new(6, 93, 71, 128);
     ///
-    /// assert_eq!(light_salmon, HSLA { h: Angle::new(6), s: Ratio::from_percentage(93), l: Ratio::from_percentage(71), a: 128 });
+    /// assert_eq!(light_salmon, HSLA { h: Angle::new(6), s: Ratio::from_percentage(93), l: Ratio::from_percentage(71), a: Ratio::from_percentage(50) });
     /// ```
     pub fn new(h: u16, s: u8, l: u8, a: u8) -> HSLA {
         HSLA {
             h: Angle::new(h),
             s: Ratio::from_percentage(s),
             l: Ratio::from_percentage(l),
-            a,
+            a: Ratio::from_u8(a),
         }
     }
 }
@@ -1033,7 +1039,7 @@ impl Color for HSLA {
             h,
             s,
             l,
-            a: a + amount,
+            a: (a + Ratio::from_u8(amount)).unwrap(),
         }
     }
 
@@ -1044,7 +1050,7 @@ impl Color for HSLA {
             h,
             s,
             l,
-            a: a - amount,
+            a: (a - Ratio::from_u8(amount)).unwrap(),
         }
     }
 
@@ -1095,7 +1101,7 @@ mod css_color_tests {
                 r: Ratio::from_u8(5),
                 g: Ratio::from_u8(10),
                 b: Ratio::from_u8(15),
-                a: 255
+                a: Ratio::from_u8(255),
             }
         );
         assert_eq!(
@@ -1112,7 +1118,7 @@ mod css_color_tests {
                 h: Angle::new(6),
                 s: Ratio::from_percentage(93),
                 l: Ratio::from_percentage(71),
-                a: 255
+                a: Ratio::from_u8(255),
             }
         );
     }
@@ -1628,7 +1634,7 @@ mod css_color_tests {
         assert_eq!(rgb_value, "RGB { r: Ratio(5), g: Ratio(10), b: Ratio(15) }");
         assert_eq!(
             rgba_value,
-            "RGBA { r: Ratio(5), g: Ratio(10), b: Ratio(15), a: 255 }"
+            "RGBA { r: Ratio(5), g: Ratio(10), b: Ratio(15), a: Ratio(255) }"
         );
         assert_eq!(
             hsl_value,
@@ -1636,7 +1642,7 @@ mod css_color_tests {
         );
         assert_eq!(
             hsla_value,
-            "HSLA { h: Angle { degrees: 6 }, s: Ratio(237), l: Ratio(181), a: 255 }"
+            "HSLA { h: Angle { degrees: 6 }, s: Ratio(237), l: Ratio(181), a: Ratio(255) }"
         );
     }
 
