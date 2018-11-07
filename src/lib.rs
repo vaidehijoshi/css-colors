@@ -624,34 +624,21 @@ impl Color for RGBA {
             a: a_rhs,
         } = other;
 
-        // FIXME: alpha should be ratio
-        let a_lhs = a_lhs;
-        let a_rhs = a_rhs;
+        // Convert weight into a decimal, and then scale it so that it falls between a range of [-1, 1].
+        let w = (weight.as_f32() * 2.0) - 1.0;
 
-        // weigh: [0, 1]
-        let w = weight.as_f32();
-
-        // weight: [0, 2]
-        let w = w * 2.0;
-
-        // weight: [-1, 1]
-        let w = w - 1.0;
-
-        // alpha difference: [-1, 1]
+        // Find the difference between the left and right side's alphas (somewhere between [-1, 1]).
         let a = a_lhs.as_f32() - a_rhs.as_f32();
 
-        // combined rgb weight: [-1, 1]
+        // Find the combined rgb_weight, taking into account the user's passed-in weight and alpha (range of [-1, 1]).
         let rgb_weight = if w * a == -1.0 {
             w
         } else {
             (w + a) / (1.0 + w * a)
         };
 
-        // combined rgb weight: [0, 2]
-        let rgb_weight = rgb_weight + 1.0;
-
-        // combined rgb weight: [0, 1]
-        let rgb_weight = rgb_weight / 2.0;
+        // Find the combined rgb weight, scaling it to fall in a range bewtween [0, 1].
+        let rgb_weight = (rgb_weight + 1.0) / 2.0;
 
         // in ratios...
         let rgb_weight_lhs = Ratio::from_f32(rgb_weight);
@@ -669,14 +656,12 @@ impl Color for RGBA {
         }
     }
 
-    fn tint(self, weight: Ratio) -> RGBA {
-        let white = RGBA::new(255, 255, 255, 255);
-        self.mix(white, weight)
+    fn tint(self, _weight: Ratio) -> RGBA {
+        self.mix(RGBA::new(255, 255, 255, 255), _weight)
     }
 
-    fn shade(self, weight: Ratio) -> RGBA {
-        let black = RGBA::new(0, 0, 0, 255);
-        self.mix(black, weight)
+    fn shade(self, _weight: Ratio) -> RGBA {
+        self.mix(RGBA::new(0, 0, 0, 255), _weight)
     }
 
     fn greyscale(self) -> Self {
@@ -871,12 +856,12 @@ impl Color for HSL {
         self.to_rgba().mix(other, weight)
     }
 
-    fn tint(self, weight: Ratio) -> RGBA {
-        self.to_rgba().tint(weight)
+    fn tint(self, _weight: Ratio) -> RGBA {
+        self.to_rgba().tint(_weight)
     }
 
-    fn shade(self, weight: Ratio) -> RGBA {
-        self.to_rgba().shade(weight)
+    fn shade(self, _weight: Ratio) -> RGBA {
+        self.to_rgba().shade(_weight)
     }
 
     fn greyscale(self) -> Self {
@@ -1068,12 +1053,12 @@ impl Color for HSLA {
         self.to_rgba().mix(other, weight)
     }
 
-    fn tint(self, weight: Ratio) -> RGBA {
-        self.to_rgba().tint(weight)
+    fn tint(self, _weight: Ratio) -> RGBA {
+        self.to_rgba().tint(_weight)
     }
 
-    fn shade(self, weight: Ratio) -> RGBA {
-        self.to_rgba().shade(weight)
+    fn shade(self, _weight: Ratio) -> RGBA {
+        self.to_rgba().shade(_weight)
     }
 
     fn greyscale(self) -> Self {
