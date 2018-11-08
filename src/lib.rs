@@ -1412,116 +1412,132 @@ mod css_color_tests {
     }
 
     #[test]
-    fn can_manipulate_saturation() {
+    fn can_saturate() {
         use self::conversions::ApproximatelyEq;
 
-        let hsl_color = HSL::new(9, 35, 50);
-        let hsla_color = HSLA::new(9, 35, 50, 255);
-        let saturated_hsl_color = HSL::new(9, 55, 50);
-        let saturated_hsla_color = HSLA::new(9, 55, 50, 255);
-        let rgb_color = RGB::new(172, 96, 83);
-        let saturated_rgb_color = RGB::new(197, 78, 57);
-        let rgba_color = RGBA::new(172, 96, 83, 255);
-        let saturated_rgba_color = RGBA::new(197, 78, 57, 255);
+        assert_eq!(HSL::new(9, 35, 50).saturate(20), HSL::new(9, 55, 50));
+        assert_eq!(
+            HSLA::new(9, 35, 50, 255).saturate(20),
+            HSLA::new(9, 55, 50, 255)
+        );
 
-        // Saturate
-        assert_eq!(hsl_color.saturate(20), saturated_hsl_color);
-        assert_eq!(hsla_color.saturate(20), saturated_hsla_color);
-        assert_approximately_eq!(rgb_color.saturate(20), saturated_rgb_color);
-        assert_approximately_eq!(rgb_color.saturate(20), saturated_rgb_color);
-        assert_approximately_eq!(rgba_color.saturate(20), saturated_rgba_color);
-
-        // Desaturate
-        assert_eq!(saturated_hsl_color.desaturate(20), hsl_color);
-        assert_eq!(saturated_hsla_color.desaturate(20), hsla_color);
-        assert_approximately_eq!(saturated_rgb_color.desaturate(20), rgb_color);
-        assert_approximately_eq!(saturated_rgba_color.desaturate(20), rgba_color);
+        assert_approximately_eq!(RGB::new(172, 96, 83).saturate(20), RGB::new(197, 78, 57));
+        assert_approximately_eq!(
+            RGBA::new(172, 96, 83, 255).saturate(20),
+            RGBA::new(197, 78, 57, 255)
+        );
     }
 
     #[test]
-    fn can_manipulate_lightness() {
+    fn can_desaturate() {
         use self::conversions::ApproximatelyEq;
 
-        let hsl_color = HSL::new(9, 35, 50);
-        let hsla_color = HSLA::new(9, 35, 50, 255);
-        let lightened_hsl_color = HSL::new(9, 35, 70);
-        let lightened_hsla_color = HSLA::new(9, 35, 70, 255);
-        let rgb_color = RGB::new(172, 96, 83);
-        let lightened_rgb_color = RGB::new(205, 160, 152);
-        let rgba_color = RGBA::new(172, 96, 83, 255);
-        let lightened_rgba_color = RGBA::new(205, 160, 152, 255);
-
-        // Lighten
-        assert_eq!(hsl_color.lighten(20), lightened_hsl_color);
-        assert_eq!(hsla_color.lighten(20), lightened_hsla_color);
-        assert_approximately_eq!(rgb_color.lighten(20), lightened_rgb_color);
-        assert_approximately_eq!(rgba_color.lighten(20), lightened_rgba_color);
-
-        // Darken
-        assert_eq!(lightened_hsl_color.darken(20), hsl_color);
-        assert_eq!(lightened_hsla_color.darken(20), hsla_color);
-        assert_approximately_eq!(lightened_rgb_color.darken(20), rgb_color);
-        assert_approximately_eq!(lightened_rgba_color.darken(20), rgba_color);
+        assert_eq!(HSL::new(9, 55, 50).desaturate(20), HSL::new(9, 35, 50));
+        assert_eq!(
+            HSLA::new(9, 55, 50, 255).desaturate(20),
+            HSLA::new(9, 35, 50, 255)
+        );
+        assert_approximately_eq!(RGB::new(197, 78, 57).desaturate(20), RGB::new(172, 96, 83));
+        assert_approximately_eq!(
+            RGBA::new(197, 78, 57, 255).desaturate(20),
+            RGBA::new(172, 96, 83, 255)
+        );
     }
 
     #[test]
-    fn can_fade_in_and_out() {
-        let hsl_color = HSL::new(9, 35, 50);
-        let hsla_color = HSLA::new(9, 35, 50, 128);
-        let faded_hsla_color = HSLA::new(9, 35, 50, 148);
-        let rgb_color = RGB::new(172, 96, 83);
-        let rgba_color = RGBA::new(172, 96, 83, 128);
-        let faded_rgba_color = RGBA::new(172, 96, 83, 148);
+    fn can_lighten() {
+        use self::conversions::ApproximatelyEq;
 
-        // Opaque Colors
-        assert_eq!(hsl_color.fadein(20), hsl_color);
-        assert_eq!(hsl_color.fadeout(20), hsl_color);
+        assert_eq!(HSL::new(9, 35, 50).lighten(20), HSL::new(9, 35, 70));
+        assert_eq!(
+            HSLA::new(9, 35, 50, 255).lighten(20),
+            HSLA::new(9, 35, 70, 255)
+        );
+        assert_approximately_eq!(RGB::new(172, 96, 83).lighten(20), RGB::new(205, 160, 152));
+        assert_approximately_eq!(
+            RGBA::new(172, 96, 83, 255).lighten(20),
+            RGBA::new(205, 160, 152, 255)
+        );
+    }
 
-        // Fade In
-        assert_eq!(hsla_color.fadein(20), faded_hsla_color);
-        assert_eq!(rgba_color.fadein(20), faded_rgba_color);
+    #[test]
+    fn can_darken() {
+        use self::conversions::ApproximatelyEq;
 
-        // Fade Out
-        assert_eq!(rgb_color.fadein(20), rgb_color);
-        assert_eq!(rgb_color.fadeout(20), rgb_color);
-        assert_eq!(faded_hsla_color.fadeout(20), hsla_color);
-        assert_eq!(faded_rgba_color.fadeout(20), rgba_color);
+        assert_eq!(HSL::new(9, 35, 70).darken(20), HSL::new(9, 35, 50));
+        assert_eq!(
+            HSLA::new(9, 35, 70, 255).darken(20),
+            HSLA::new(9, 35, 50, 255)
+        );
+        assert_approximately_eq!(RGB::new(205, 160, 152).darken(20), RGB::new(172, 96, 83));
+        assert_approximately_eq!(
+            RGBA::new(205, 160, 152, 255).darken(20),
+            RGBA::new(172, 96, 83, 255)
+        );
+    }
+
+    #[test]
+    fn can_fadein() {
+        assert_eq!(HSL::new(9, 35, 50).fadein(20), HSL::new(9, 35, 50));
+        assert_eq!(
+            HSLA::new(9, 35, 50, 128).fadein(20),
+            HSLA::new(9, 35, 50, 148)
+        );
+        assert_eq!(RGB::new(172, 96, 83).fadein(20), RGB::new(172, 96, 83));
+        assert_eq!(
+            RGBA::new(172, 96, 83, 128).fadein(20),
+            RGBA::new(172, 96, 83, 148)
+        );
+    }
+
+    #[test]
+    fn can_fadeout() {
+        assert_eq!(HSL::new(9, 35, 50).fadeout(20), HSL::new(9, 35, 50));
+        assert_eq!(RGB::new(172, 96, 83).fadeout(20), RGB::new(172, 96, 83));
+        assert_eq!(
+            HSLA::new(9, 35, 50, 148).fadeout(20),
+            HSLA::new(9, 35, 50, 128)
+        );
+        assert_eq!(
+            RGBA::new(172, 96, 83, 148).fadeout(20),
+            RGBA::new(172, 96, 83, 128)
+        );
     }
 
     #[test]
     fn can_fade() {
-        let rgb_color = RGB::new(23, 98, 119);
-        let rgba_color = RGBA::new(23, 98, 119, 255);
-        let hsl_color = HSL::new(193, 67, 28);
-        let hsla_color = HSLA::new(193, 67, 28, 255);
         let faded_color = RGBA::new(23, 98, 119, 50);
 
-        assert_eq!(rgb_color.fade(50), faded_color);
-        assert_eq!(rgba_color.fade(50), faded_color);
-        assert_eq!(hsl_color.fade(50), faded_color);
-        assert_eq!(hsla_color.fade(50), faded_color);
+        assert_eq!(RGB::new(23, 98, 119).fade(50), faded_color);
+        assert_eq!(RGBA::new(23, 98, 119, 255).fade(50), faded_color);
+        assert_eq!(HSL::new(193, 67, 28).fade(50), faded_color);
+        assert_eq!(HSLA::new(193, 67, 28, 255).fade(50), faded_color);
     }
 
     #[test]
-    fn can_spin() {
+    fn can_spin_forward() {
         use self::conversions::ApproximatelyEq;
 
-        let rgb_color = RGB::new(75, 207, 23);
-        let rgba_color = RGBA::new(75, 207, 23, 255);
-        let hsl_color = HSL::new(10, 90, 50);
-        let hsla_color = HSLA::new(10, 90, 50, 255);
+        assert_approximately_eq!(RGB::new(75, 207, 23).spin(100), RGB::new(23, 136, 207));
+        assert_approximately_eq!(
+            RGBA::new(75, 207, 23, 255).spin(100),
+            RGB::new(23, 136, 207)
+        );
+        assert_approximately_eq!(HSL::new(10, 90, 50).spin(30), RGB::new(242, 166, 13));
+        assert_approximately_eq!(HSLA::new(10, 90, 50, 255).spin(30), RGB::new(242, 166, 13));
+    }
 
-        // Spin RGB/RGBA
-        assert_approximately_eq!(rgb_color.spin(100), RGB::new(23, 136, 207));
-        assert_approximately_eq!(rgba_color.spin(100), RGB::new(23, 136, 207));
-        assert_approximately_eq!(rgb_color.spin(-100), RGB::new(207, 32, 23));
-        assert_approximately_eq!(rgba_color.spin(-100), RGB::new(207, 32, 23));
+    #[test]
+    fn can_spin_backwards() {
+        use self::conversions::ApproximatelyEq;
 
-        // Spin HSL/HSLA
-        assert_approximately_eq!(hsl_color.spin(30), RGB::new(242, 166, 13));
-        assert_approximately_eq!(hsla_color.spin(30), RGB::new(242, 166, 13));
-        assert_approximately_eq!(hsl_color.spin(-30), RGB::new(242, 13, 89));
-        assert_approximately_eq!(hsla_color.spin(-30), RGB::new(242, 13, 89));
+        assert_approximately_eq!(RGB::new(75, 207, 23).spin(-100), RGB::new(207, 32, 23));
+        assert_approximately_eq!(
+            RGBA::new(75, 207, 23, 255).spin(-100),
+            RGB::new(207, 32, 23)
+        );
+        assert_approximately_eq!(HSL::new(10, 90, 50).spin(-30), RGB::new(242, 13, 89));
+        assert_approximately_eq!(HSLA::new(10, 90, 50, 255).spin(-30), RGB::new(242, 13, 89));
     }
 
     #[test]
@@ -1544,6 +1560,8 @@ mod css_color_tests {
 
         assert_approximately_eq!(red.mix(green, 100), red);
         assert_approximately_eq!(red.mix(green, 0), green);
+        assert_approximately_eq!(green.mix(red, 100), green);
+        assert_approximately_eq!(green.mix(red, 0), red);
     }
 
     #[test]
@@ -1555,52 +1573,56 @@ mod css_color_tests {
         let brown = RGBA::new(75, 25, 0, 191);
 
         assert_approximately_eq!(red.mix(green, 50), brown);
+        assert_approximately_eq!(green.mix(red, 50), brown);
     }
 
     #[test]
     fn can_tint() {
         use self::conversions::ApproximatelyEq;
 
-        let rgb_color = RGB::new(0, 0, 255);
-        let rgba_color = RGBA::new(0, 0, 255, 128);
-        let hsl_color = HSL::new(6, 93, 71);
-        let hsla_color = HSLA::new(6, 93, 71, 128);
-
-        assert_eq!(rgba_color.tint(50), RGBA::new(191, 191, 255, 191));
-        assert_approximately_eq!(rgb_color.tint(50), RGBA::new(128, 128, 255, 255));
-        assert_approximately_eq!(hsl_color.tint(50), RGBA::new(253, 191, 184, 255));
-        assert_approximately_eq!(hsla_color.tint(50), RGBA::new(254, 223, 219, 191));
+        assert_eq!(
+            RGBA::new(0, 0, 255, 128).tint(50),
+            RGBA::new(191, 191, 255, 191)
+        );
+        assert_approximately_eq!(RGB::new(0, 0, 255).tint(50), RGBA::new(128, 128, 255, 255));
+        assert_approximately_eq!(HSL::new(6, 93, 71).tint(50), RGBA::new(253, 191, 184, 255));
+        assert_approximately_eq!(
+            HSLA::new(6, 93, 71, 128).tint(50),
+            RGBA::new(254, 223, 219, 191)
+        );
     }
 
     #[test]
     fn can_shade() {
         use self::conversions::ApproximatelyEq;
 
-        let rgb_color = RGB::new(0, 0, 255);
-        let rgba_color = RGBA::new(0, 0, 255, 128);
-        let hsl_color = HSL::new(6, 93, 71);
-        let hsla_color = HSLA::new(6, 93, 71, 128);
+        assert_eq!(
+            RGBA::new(0, 0, 255, 128).shade(50),
+            RGBA::new(0, 0, 64, 191)
+        );
 
-        assert_eq!(rgba_color.shade(50), RGBA::new(0, 0, 64, 191));
+        assert_approximately_eq!(RGB::new(0, 0, 255).shade(50), RGBA::new(0, 0, 128, 255));
 
-        assert_approximately_eq!(rgb_color.shade(50), RGBA::new(0, 0, 128, 255));
+        assert_approximately_eq!(HSL::new(6, 93, 71).shade(50), RGBA::new(125, 63, 56, 255));
 
-        assert_approximately_eq!(hsl_color.shade(50), RGBA::new(125, 63, 56, 255));
-
-        assert_approximately_eq!(hsla_color.shade(50), RGBA::new(63, 32, 28, 191));
+        assert_approximately_eq!(
+            HSLA::new(6, 93, 71, 128).shade(50),
+            RGBA::new(63, 32, 28, 191)
+        );
     }
 
     #[test]
     fn can_greyscale() {
-        let rgb_color = RGB::new(128, 242, 13);
-        let rgba_color = RGBA::new(128, 242, 13, 255);
-        let hsl_color = HSL::new(90, 90, 50);
-        let hsla_color = HSLA::new(90, 90, 50, 255);
-
-        assert_eq!(rgb_color.greyscale(), RGB::new(128, 128, 128));
-        assert_eq!(rgba_color.greyscale(), RGBA::new(128, 128, 128, 255));
-        assert_eq!(hsl_color.greyscale(), HSL::new(90, 0, 50));
-        assert_eq!(hsla_color.greyscale(), HSLA::new(90, 0, 50, 255));
+        assert_eq!(RGB::new(128, 242, 13).greyscale(), RGB::new(128, 128, 128));
+        assert_eq!(
+            RGBA::new(128, 242, 13, 255).greyscale(),
+            RGBA::new(128, 128, 128, 255)
+        );
+        assert_eq!(HSL::new(90, 90, 50).greyscale(), HSL::new(90, 0, 50));
+        assert_eq!(
+            HSLA::new(90, 90, 50, 255).greyscale(),
+            HSLA::new(90, 0, 50, 255)
+        );
     }
 
     #[test]
