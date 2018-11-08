@@ -47,7 +47,7 @@ impl ops::Add for Ratio {
     type Output = Option<Ratio>;
 
     fn add(self, other: Ratio) -> Option<Ratio> {
-        self.0.checked_add(other.0).map(|total| Ratio(total))
+        clamp_ratio(self.as_f32() + other.as_f32())
     }
 }
 
@@ -55,7 +55,7 @@ impl ops::Sub for Ratio {
     type Output = Option<Ratio>;
 
     fn sub(self, other: Ratio) -> Option<Ratio> {
-        self.0.checked_sub(other.0).map(|total| Ratio(total))
+        clamp_ratio(self.as_f32() - other.as_f32())
     }
 }
 
@@ -63,7 +63,7 @@ impl ops::Mul for Ratio {
     type Output = Option<Ratio>;
 
     fn mul(self, other: Ratio) -> Option<Ratio> {
-        Some(Ratio::from_f32(self.as_f32() * other.as_f32()))
+        clamp_ratio(self.as_f32() * other.as_f32())
     }
 }
 
@@ -71,13 +71,18 @@ impl ops::Div for Ratio {
     type Output = Option<Ratio>;
 
     fn div(self, other: Ratio) -> Option<Ratio> {
-        let result = self.as_f32() / other.as_f32();
+        clamp_ratio(self.as_f32() / other.as_f32())
+    }
+}
 
-        if result >= 0.0 && result <= 1.0 {
-            Some(Ratio::from_f32(result))
-        } else {
-            None
-        }
+// A function to clamp the value of a Ratio to fall between [0.0 - 1.0].
+fn clamp_ratio(value: f32) -> Option<Ratio> {
+    if value > 1.0 {
+        Some(Ratio::from_f32(1.0))
+    } else if value >= 0.0 && value <= 1.0 {
+        Some(Ratio::from_f32(value))
+    } else {
+        Some(Ratio::from_f32(0.0))
     }
 }
 
@@ -98,26 +103,35 @@ mod tests {
     }
 
     #[test]
-    fn handles_overflow_percentage() {
+    fn can_clamp_percentage() {
         assert_eq!(
             Ratio::from_percentage(50) + Ratio::from_percentage(55),
-            None
+            Some(Ratio::from_percentage(100))
         );
         assert_eq!(
             Ratio::from_percentage(50) - Ratio::from_percentage(55),
-            None
+            Some(Ratio::from_percentage(0))
         );
         assert_eq!(
             Ratio::from_percentage(55) / Ratio::from_percentage(50),
-            None
+            Some(Ratio::from_percentage(100))
         );
     }
 
     #[test]
-    fn handles_overflow_f32() {
-        assert_eq!(Ratio::from_f32(0.75) + Ratio::from_f32(0.75), None);
-        assert_eq!(Ratio::from_f32(0.25) - Ratio::from_f32(0.75), None);
-        assert_eq!(Ratio::from_f32(0.75) / Ratio::from_f32(0.25), None);
+    fn can_clamp_f32() {
+        assert_eq!(
+            Ratio::from_f32(0.75) + Ratio::from_f32(0.75),
+            Some(Ratio::from_f32(1.0))
+        );
+        assert_eq!(
+            Ratio::from_f32(0.25) - Ratio::from_f32(0.75),
+            Some(Ratio::from_f32(0.0))
+        );
+        assert_eq!(
+            Ratio::from_f32(0.75) / Ratio::from_f32(0.25),
+            Some(Ratio::from_f32(1.0))
+        );
     }
 
     #[test]
@@ -170,13 +184,8 @@ mod tests {
         assert_eq!((b / b).unwrap(), Ratio::from_percentage(100));
         assert_eq!((c / c).unwrap(), Ratio::from_percentage(100));
 
-        assert_eq!(a / b, None);
         assert_eq!((b / a).unwrap(), Ratio::from_percentage(50));
-
-        assert_eq!(a / c, None);
         assert_eq!((c / a).unwrap(), Ratio::from_percentage(20));
-
-        assert_eq!(b / c, None);
         assert_eq!((c / b).unwrap(), Ratio::from_percentage(40));
     }
 
@@ -188,8 +197,7 @@ mod tests {
 
         assert_eq!((a + b).unwrap(), Ratio::from_f32(1.0));
         assert_eq!((c + c).unwrap(), Ratio::from_u8(52));
-        // This seems to be lossy; possible to test like this?
-        // assert_eq!((c + c).unwrap(), Ratio::from_f32(0.2));
+        assert_eq!((b + c).unwrap(), Ratio::from_u8(141));
     }
 
     #[test]
@@ -200,7 +208,7 @@ mod tests {
 
         assert_eq!((b - c).unwrap(), Ratio::from_f32(0.35));
         assert_eq!((a - b).unwrap(), Ratio::from_u8(25));
-        // assert_eq!((a - b).unwrap(), Ratio::from_f32(0.10));
+        assert_eq!((a - c).unwrap(), Ratio::from_u8(114));
     }
 
     #[test]
@@ -210,7 +218,7 @@ mod tests {
 
         assert_eq!((a * b).unwrap(), Ratio::from_f32(0.125));
         assert_eq!((a * a).unwrap(), Ratio::from_f32(0.25));
-        // assert_eq!((a * a).unwrap(), Ratio::from_f32(0.0001));
+        assert_eq!((b * b).unwrap(), Ratio::from_f32(0.0625));
     }
 
     #[test]
