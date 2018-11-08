@@ -588,7 +588,7 @@ impl Color for RGBA {
             r,
             g,
             b,
-            a: (a + Ratio::from_u8(amount)).unwrap(),
+            a: a + Ratio::from_u8(amount),
         }
     }
 
@@ -599,7 +599,7 @@ impl Color for RGBA {
             r,
             g,
             b,
-            a: (a - Ratio::from_u8(amount)).unwrap(),
+            a: a - Ratio::from_u8(amount),
         }
     }
 
@@ -618,25 +618,10 @@ impl Color for RGBA {
         self.to_hsl().spin(amount).to_rgb()
     }
 
-    //   # This algorithm factors in both the user-provided weight (w) and the
-    //   # difference between the alpha values of the two colors (a) to decide how
-    //   # to perform the weighted average of the two RGB values.
-    //   #
-    //   # It works by first normalizing both parameters to be within [-1, 1],
-    //   # where 1 indicates "only use color1", -1 indicates "only use color2", and
-    //   # all values in between indicated a proportionately weighted average.
-    //   #
-    //   # Once we have the normalized variables w and a, we apply the formula
-    //   # (w + a)/(1 + w*a) to get the combined weight (in [-1, 1]) of color1.
-    //   # This formula has two especially nice properties:
-    //   #
-    //   #   * When either w or a are -1 or 1, the combined weight is also that number
-    //   #     (cases where w * a == -1 are undefined, and handled as a special case).
-    //   #
-    //   #   * When a is 0, the combined weight is w, and vice versa.
-    //   #
-    //   # Finally, the weight of color1 is renormalized to be within [0, 1]
-    //   # and the weight of color2 is given by 1 minus the weight of color1.
+    // This algorithm takes into account both the user-provided weight (w) and
+    // the difference between the alpha values of the two colors (a) to determine
+    // the weighted average of the two colors.
+    // Taken from Sass's implementation (http://sass-lang.com/documentation/Sass/Script/Functions.html#mix-instance_method)
     fn mix(self, other: RGBA, weight: u8) -> Self {
         let RGBA {
             r: r_lhs,
@@ -670,19 +655,18 @@ impl Color for RGBA {
         // Find the combined rgb weight, scaling it to fall in a range bewtween [0, 1].
         let rgb_weight = (rgb_weight + 1.0) / 2.0;
 
-        // in ratios...
+        // Convert left and right side's weights into Ratios.
         let rgb_weight_lhs = Ratio::from_f32(rgb_weight);
-        let rgb_weight_rhs = (Ratio::from_f32(1.0) - rgb_weight_lhs).unwrap();
+        let rgb_weight_rhs = Ratio::from_f32(1.0) - rgb_weight_lhs;
 
         let alpha_weight_lhs = ratio_weight;
-        let alpha_weight_rhs = (Ratio::from_f32(1.0) - alpha_weight_lhs).unwrap();
+        let alpha_weight_rhs = Ratio::from_f32(1.0) - alpha_weight_lhs;
 
         RGBA {
-            r: ((r_lhs * rgb_weight_lhs).unwrap() + (r_rhs * rgb_weight_rhs).unwrap()).unwrap(),
-            g: ((g_lhs * rgb_weight_lhs).unwrap() + (g_rhs * rgb_weight_rhs).unwrap()).unwrap(),
-            b: ((b_lhs * rgb_weight_lhs).unwrap() + (b_rhs * rgb_weight_rhs).unwrap()).unwrap(),
-            // FIXME: alpha should be ratio
-            a: ((a_lhs * alpha_weight_lhs).unwrap() + (a_rhs * alpha_weight_rhs).unwrap()).unwrap(),
+            r: (r_lhs * rgb_weight_lhs) + (r_rhs * rgb_weight_rhs),
+            g: (g_lhs * rgb_weight_lhs) + (g_rhs * rgb_weight_rhs),
+            b: (b_lhs * rgb_weight_lhs) + (b_rhs * rgb_weight_rhs),
+            a: (a_lhs * alpha_weight_lhs) + (a_rhs * alpha_weight_rhs),
         }
     }
 
@@ -819,7 +803,7 @@ impl Color for HSL {
 
         HSL {
             h,
-            s: (s + Ratio::from_percentage(amount)).unwrap(),
+            s: s + Ratio::from_percentage(amount),
             l,
         }
     }
@@ -829,7 +813,7 @@ impl Color for HSL {
 
         HSL {
             h,
-            s: (s - Ratio::from_percentage(amount)).unwrap(),
+            s: s - Ratio::from_percentage(amount),
             l,
         }
     }
@@ -840,7 +824,7 @@ impl Color for HSL {
         HSL {
             h,
             s,
-            l: (l + Ratio::from_percentage(amount)).unwrap(),
+            l: l + Ratio::from_percentage(amount),
         }
     }
 
@@ -850,7 +834,7 @@ impl Color for HSL {
         HSL {
             h,
             s,
-            l: (l - Ratio::from_percentage(amount)).unwrap(),
+            l: l - Ratio::from_percentage(amount),
         }
     }
 
@@ -1008,7 +992,7 @@ impl Color for HSLA {
 
         HSLA {
             h,
-            s: (s + Ratio::from_percentage(amount)).unwrap(),
+            s: s + Ratio::from_percentage(amount),
             l,
             a,
         }
@@ -1019,7 +1003,7 @@ impl Color for HSLA {
 
         HSLA {
             h,
-            s: (s - Ratio::from_percentage(amount)).unwrap(),
+            s: s - Ratio::from_percentage(amount),
             l,
             a,
         }
@@ -1031,7 +1015,7 @@ impl Color for HSLA {
         HSLA {
             h,
             s,
-            l: (l + Ratio::from_percentage(amount)).unwrap(),
+            l: l + Ratio::from_percentage(amount),
             a,
         }
     }
@@ -1042,7 +1026,7 @@ impl Color for HSLA {
         HSLA {
             h,
             s,
-            l: (l - Ratio::from_percentage(amount)).unwrap(),
+            l: l - Ratio::from_percentage(amount),
             a,
         }
     }
@@ -1054,7 +1038,7 @@ impl Color for HSLA {
             h,
             s,
             l,
-            a: (a + Ratio::from_u8(amount)).unwrap(),
+            a: a + Ratio::from_u8(amount),
         }
     }
 
@@ -1065,7 +1049,7 @@ impl Color for HSLA {
             h,
             s,
             l,
-            a: (a - Ratio::from_u8(amount)).unwrap(),
+            a: a - Ratio::from_u8(amount),
         }
     }
 

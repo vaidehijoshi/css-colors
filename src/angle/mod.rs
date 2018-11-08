@@ -3,7 +3,7 @@ use std::ops;
 
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Ord, PartialOrd)]
 /// A struct that represents the number of degrees in a circle.
-/// Legal values range from `0-359`. Anything else is unsused.
+/// Legal values range from `0-359`. Anything else is unused.
 pub struct Angle {
     degrees: u16,
 }

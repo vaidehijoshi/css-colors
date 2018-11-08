@@ -3,6 +3,7 @@ use std::ops;
 
 #[derive(Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq)]
 /// A struct that represents a ratio and determines the legal value(s) for a given type.
+/// Clamps any values that fall beyond the valid legal range for the type.
 /// Used to convert a type into a valid percentage representation.
 pub struct Ratio(u8);
 
@@ -44,45 +45,45 @@ impl fmt::Display for Ratio {
 }
 
 impl ops::Add for Ratio {
-    type Output = Option<Ratio>;
+    type Output = Ratio;
 
-    fn add(self, other: Ratio) -> Option<Ratio> {
+    fn add(self, other: Ratio) -> Ratio {
         clamp_ratio(self.as_f32() + other.as_f32())
     }
 }
 
 impl ops::Sub for Ratio {
-    type Output = Option<Ratio>;
+    type Output = Ratio;
 
-    fn sub(self, other: Ratio) -> Option<Ratio> {
+    fn sub(self, other: Ratio) -> Ratio {
         clamp_ratio(self.as_f32() - other.as_f32())
     }
 }
 
 impl ops::Mul for Ratio {
-    type Output = Option<Ratio>;
+    type Output = Ratio;
 
-    fn mul(self, other: Ratio) -> Option<Ratio> {
+    fn mul(self, other: Ratio) -> Ratio {
         clamp_ratio(self.as_f32() * other.as_f32())
     }
 }
 
 impl ops::Div for Ratio {
-    type Output = Option<Ratio>;
+    type Output = Ratio;
 
-    fn div(self, other: Ratio) -> Option<Ratio> {
+    fn div(self, other: Ratio) -> Ratio {
         clamp_ratio(self.as_f32() / other.as_f32())
     }
 }
 
 // A function to clamp the value of a Ratio to fall between [0.0 - 1.0].
-fn clamp_ratio(value: f32) -> Option<Ratio> {
+fn clamp_ratio(value: f32) -> Ratio {
     if value > 1.0 {
-        Some(Ratio::from_f32(1.0))
+        Ratio::from_f32(1.0)
     } else if value >= 0.0 && value <= 1.0 {
-        Some(Ratio::from_f32(value))
+        Ratio::from_f32(value)
     } else {
-        Some(Ratio::from_f32(0.0))
+        Ratio::from_f32(0.0)
     }
 }
 
@@ -106,15 +107,15 @@ mod tests {
     fn can_clamp_percentage() {
         assert_eq!(
             Ratio::from_percentage(50) + Ratio::from_percentage(55),
-            Some(Ratio::from_percentage(100))
+            Ratio::from_percentage(100)
         );
         assert_eq!(
             Ratio::from_percentage(50) - Ratio::from_percentage(55),
-            Some(Ratio::from_percentage(0))
+            Ratio::from_percentage(0)
         );
         assert_eq!(
             Ratio::from_percentage(55) / Ratio::from_percentage(50),
-            Some(Ratio::from_percentage(100))
+            Ratio::from_percentage(100)
         );
     }
 
@@ -122,15 +123,15 @@ mod tests {
     fn can_clamp_f32() {
         assert_eq!(
             Ratio::from_f32(0.75) + Ratio::from_f32(0.75),
-            Some(Ratio::from_f32(1.0))
+            Ratio::from_f32(1.0)
         );
         assert_eq!(
             Ratio::from_f32(0.25) - Ratio::from_f32(0.75),
-            Some(Ratio::from_f32(0.0))
+            Ratio::from_f32(0.0)
         );
         assert_eq!(
             Ratio::from_f32(0.75) / Ratio::from_f32(0.25),
-            Some(Ratio::from_f32(1.0))
+            Ratio::from_f32(1.0)
         );
     }
 
@@ -140,8 +141,8 @@ mod tests {
         let b = Ratio::from_percentage(45);
         let c = Ratio::from_percentage(10);
 
-        assert_eq!((a + b).unwrap(), Ratio::from_percentage(100));
-        assert_eq!((a + c).unwrap(), Ratio::from_percentage(65));
+        assert_eq!(a + b, Ratio::from_percentage(100));
+        assert_eq!(a + c, Ratio::from_percentage(65));
     }
 
     #[test]
@@ -150,8 +151,8 @@ mod tests {
         let b = Ratio::from_percentage(10);
         let c = Ratio::from_percentage(1);
 
-        assert_eq!((a - b).unwrap(), Ratio::from_percentage(35));
-        assert_eq!((b - c).unwrap(), Ratio::from_percentage(9));
+        assert_eq!(a - b, Ratio::from_percentage(35));
+        assert_eq!(b - c, Ratio::from_percentage(9));
     }
 
     #[test]
@@ -160,18 +161,18 @@ mod tests {
         let b = Ratio::from_percentage(50);
         let c = Ratio::from_percentage(20);
 
-        assert_eq!((a * a).unwrap(), Ratio::from_percentage(100));
-        assert_eq!((b * b).unwrap(), Ratio::from_percentage(25));
-        assert_eq!((c * c).unwrap(), Ratio::from_percentage(4));
+        assert_eq!(a * a, Ratio::from_percentage(100));
+        assert_eq!(b * b, Ratio::from_percentage(25));
+        assert_eq!(c * c, Ratio::from_percentage(4));
 
-        assert_eq!((a * b).unwrap(), Ratio::from_percentage(50));
-        assert_eq!((b * a).unwrap(), Ratio::from_percentage(50));
+        assert_eq!(a * b, Ratio::from_percentage(50));
+        assert_eq!(b * a, Ratio::from_percentage(50));
 
-        assert_eq!((a * c).unwrap(), Ratio::from_percentage(20));
-        assert_eq!((c * a).unwrap(), Ratio::from_percentage(20));
+        assert_eq!(a * c, Ratio::from_percentage(20));
+        assert_eq!(c * a, Ratio::from_percentage(20));
 
-        assert_eq!((b * c).unwrap(), Ratio::from_percentage(10));
-        assert_eq!((c * b).unwrap(), Ratio::from_percentage(10));
+        assert_eq!(b * c, Ratio::from_percentage(10));
+        assert_eq!(c * b, Ratio::from_percentage(10));
     }
 
     #[test]
@@ -180,13 +181,13 @@ mod tests {
         let b = Ratio::from_percentage(50);
         let c = Ratio::from_percentage(20);
 
-        assert_eq!((a / a).unwrap(), Ratio::from_percentage(100));
-        assert_eq!((b / b).unwrap(), Ratio::from_percentage(100));
-        assert_eq!((c / c).unwrap(), Ratio::from_percentage(100));
+        assert_eq!(a / a, Ratio::from_percentage(100));
+        assert_eq!(b / b, Ratio::from_percentage(100));
+        assert_eq!(c / c, Ratio::from_percentage(100));
 
-        assert_eq!((b / a).unwrap(), Ratio::from_percentage(50));
-        assert_eq!((c / a).unwrap(), Ratio::from_percentage(20));
-        assert_eq!((c / b).unwrap(), Ratio::from_percentage(40));
+        assert_eq!(b / a, Ratio::from_percentage(50));
+        assert_eq!(c / a, Ratio::from_percentage(20));
+        assert_eq!(c / b, Ratio::from_percentage(40));
     }
 
     #[test]
@@ -195,9 +196,9 @@ mod tests {
         let b = Ratio::from_f32(0.45);
         let c = Ratio::from_f32(0.10);
 
-        assert_eq!((a + b).unwrap(), Ratio::from_f32(1.0));
-        assert_eq!((c + c).unwrap(), Ratio::from_u8(52));
-        assert_eq!((b + c).unwrap(), Ratio::from_u8(141));
+        assert_eq!(a + b, Ratio::from_f32(1.0));
+        assert_eq!(c + c, Ratio::from_u8(52));
+        assert_eq!(b + c, Ratio::from_u8(141));
     }
 
     #[test]
@@ -206,9 +207,9 @@ mod tests {
         let b = Ratio::from_f32(0.45);
         let c = Ratio::from_f32(0.10);
 
-        assert_eq!((b - c).unwrap(), Ratio::from_f32(0.35));
-        assert_eq!((a - b).unwrap(), Ratio::from_u8(25));
-        assert_eq!((a - c).unwrap(), Ratio::from_u8(114));
+        assert_eq!(b - c, Ratio::from_f32(0.35));
+        assert_eq!(a - b, Ratio::from_u8(25));
+        assert_eq!(a - c, Ratio::from_u8(114));
     }
 
     #[test]
@@ -216,9 +217,9 @@ mod tests {
         let a = Ratio::from_f32(0.5);
         let b = Ratio::from_f32(0.25);
 
-        assert_eq!((a * b).unwrap(), Ratio::from_f32(0.125));
-        assert_eq!((a * a).unwrap(), Ratio::from_f32(0.25));
-        assert_eq!((b * b).unwrap(), Ratio::from_f32(0.0625));
+        assert_eq!(a * b, Ratio::from_f32(0.125));
+        assert_eq!(a * a, Ratio::from_f32(0.25));
+        assert_eq!(b * b, Ratio::from_f32(0.0625));
     }
 
     #[test]
@@ -227,8 +228,8 @@ mod tests {
         let b = Ratio::from_f32(0.50);
         let c = Ratio::from_f32(1.00);
 
-        assert_eq!((a / b).unwrap(), Ratio::from_f32(0.5));
-        assert_eq!((a / c).unwrap(), Ratio::from_f32(0.25));
-        assert_eq!((b / c).unwrap(), Ratio::from_f32(0.5));
+        assert_eq!(a / b, Ratio::from_f32(0.5));
+        assert_eq!(a / c, Ratio::from_f32(0.25));
+        assert_eq!(b / c, Ratio::from_f32(0.5));
     }
 }
