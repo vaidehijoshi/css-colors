@@ -228,7 +228,7 @@ pub trait Color {
     /// assert_eq!(red.mix(navy, 50), RGBA::new(122, 26, 47, 255));
     /// assert_eq!(golden.mix(navy, 25), RGBA::new(61, 42, 63, 255));
     /// ```
-    fn mix(self, other: RGBA, weight: u8) -> RGBA;
+    fn mix<T: Color>(self, other: T, weight: u8) -> RGBA;
 
     /// Mixes `self` with white in variable proportion.
     /// Equivalent to calling `mix()` with `white` (`rgb(255, 255, 255)`).
@@ -465,7 +465,7 @@ impl Color for RGB {
         self.to_hsl().spin(amount).to_rgb()
     }
 
-    fn mix(self, other: RGBA, weight: u8) -> RGBA {
+    fn mix<T: Color>(self, other: T, weight: u8) -> RGBA {
         self.to_rgba().mix(other, weight)
     }
 
@@ -622,7 +622,7 @@ impl Color for RGBA {
     // the difference between the alpha values of the two colors (a) to determine
     // the weighted average of the two colors.
     // Taken from Sass's implementation (http://sass-lang.com/documentation/Sass/Script/Functions.html#mix-instance_method)
-    fn mix(self, other: RGBA, weight: u8) -> Self {
+    fn mix<T: Color>(self, other: T, weight: u8) -> Self {
         let RGBA {
             r: r_lhs,
             g: g_lhs,
@@ -635,7 +635,7 @@ impl Color for RGBA {
             g: g_rhs,
             b: b_rhs,
             a: a_rhs,
-        } = other;
+        } = other.to_rgba();
 
         let ratio_weight = Ratio::from_percentage(weight);
 
@@ -866,7 +866,7 @@ impl Color for HSL {
         HSL { h: new_hue, s, l }.to_rgb()
     }
 
-    fn mix(self, other: RGBA, weight: u8) -> RGBA {
+    fn mix<T: Color>(self, other: T, weight: u8) -> RGBA {
         self.to_rgba().mix(other, weight)
     }
 
@@ -1063,7 +1063,7 @@ impl Color for HSLA {
         self.to_hsl().spin(amount).to_rgb()
     }
 
-    fn mix(self, other: RGBA, weight: u8) -> RGBA {
+    fn mix<T: Color>(self, other: T, weight: u8) -> RGBA {
         self.to_rgba().mix(other, weight)
     }
 
