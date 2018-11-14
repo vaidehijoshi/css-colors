@@ -1,6 +1,18 @@
 use std::fmt;
 use std::ops;
 
+pub fn degrees(mut degrees: i16) -> Angle {
+    while degrees < 0 {
+        degrees += 360;
+    }
+
+    while degrees >= 360 {
+        degrees -= 360;
+    }
+
+    Angle::new(degrees as u16)
+}
+
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Ord, PartialOrd)]
 /// A struct that represents the number of degrees in a circle.
 /// Legal values range from `0-359`. Anything else is unused.

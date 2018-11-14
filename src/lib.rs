@@ -2,8 +2,8 @@ use std::fmt;
 
 pub mod angle;
 pub mod ratio;
-use angle::Angle;
-use ratio::Ratio;
+pub use angle::*;
+pub use ratio::*;
 
 /// A trait that can be used for converting between different color models
 /// and performing various transformations on them.
@@ -202,14 +202,14 @@ pub trait Color {
     ///
     /// # Examples
     /// ```
-    /// use css_colors::{Color, RGB, HSL};
+    /// use css_colors::{Color, RGB, HSL, degrees};
     ///
     /// let red = HSL::new(10, 90, 50);
     /// let golden = RGB::new(243, 166, 13);
     /// let pink = RGB::new(243, 13, 90);
     ///
-    /// assert_eq!(red.spin(30), golden);
-    /// assert_eq!(red.spin(-30), pink);
+    /// assert_eq!(red.spin(degrees(30)), golden);
+    /// assert_eq!(red.spin(degrees(-30)), pink);
     /// ```
     fn spin(self, amount: i16) -> RGB;
 
@@ -221,14 +221,14 @@ pub trait Color {
     ///
     /// # Examples
     /// ```
-    /// use css_colors::{Color, RGB, RGBA, HSL};
+    /// use css_colors::{Color, RGB, RGBA, HSL, HSLA, percent};
     ///
     /// let red = HSL::new(10, 90, 50);
     /// let golden = RGB::new(243, 166, 13);
     /// let navy = RGBA::new(0, 0, 80, 255);
     ///
-    /// assert_eq!(red.mix(navy, 50), RGBA::new(122, 26, 47, 255));
-    /// assert_eq!(golden.mix(navy, 25), RGBA::new(61, 42, 63, 255));
+    /// assert_eq!(red.mix(navy, percent(50)), HSLA::new(347, 65, 29, 255));
+    /// assert_eq!(golden.mix(navy, percent(25)), RGBA::new(61, 42, 63, 255));
     /// ```
     fn mix<T: Color>(self, other: T, weight: u8) -> Self::Alpha;
 

@@ -1,6 +1,10 @@
 use std::fmt;
 use std::ops;
 
+pub fn percent(percentage: u8) -> Ratio {
+    Ratio::from_percentage(percentage)
+}
+
 #[derive(Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq)]
 /// A struct that represents a ratio and determines the legal value(s) for a given type.
 /// Clamps any values that fall beyond the valid legal range for the type.
