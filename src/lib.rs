@@ -8,6 +8,8 @@ use ratio::Ratio;
 /// A trait that can be used for converting between different color models
 /// and performing various transformations on them.
 pub trait Color {
+    type Alpha: Color;
+
     /// Converts `self` to its CSS string format.
     ///
     /// # Examples
@@ -192,7 +194,7 @@ pub trait Color {
     /// assert_eq!(tomato.fade(25), RGBA::new(255, 99, 71, 25));
     /// assert_eq!(cornflower_blue.fade(128), RGBA::new(100, 149, 237, 128));
     /// ```
-    fn fade(self, amount: u8) -> RGBA;
+    fn fade(self, amount: u8) -> Self::Alpha;
 
     /// Rotate the hue angle of `self` in either direction.
     /// Returns the appropriate `RGB` representation of the color once it has been spun.
@@ -228,7 +230,7 @@ pub trait Color {
     /// assert_eq!(red.mix(navy, 50), RGBA::new(122, 26, 47, 255));
     /// assert_eq!(golden.mix(navy, 25), RGBA::new(61, 42, 63, 255));
     /// ```
-    fn mix<T: Color>(self, other: T, weight: u8) -> RGBA;
+    fn mix<T: Color>(self, other: T, weight: u8) -> Self::Alpha;
 
     /// Mixes `self` with white in variable proportion.
     /// Equivalent to calling `mix()` with `white` (`rgb(255, 255, 255)`).
@@ -333,6 +335,8 @@ impl RGB {
 }
 
 impl Color for RGB {
+    type Alpha = RGBA;
+
     fn to_css(self) -> String {
         self.to_string()
     }
@@ -539,6 +543,8 @@ impl RGBA {
 }
 
 impl Color for RGBA {
+    type Alpha = Self;
+
     fn to_css(self) -> String {
         self.to_string()
     }
@@ -729,6 +735,8 @@ impl HSL {
 }
 
 impl Color for HSL {
+    type Alpha = HSLA;
+
     fn to_css(self) -> String {
         self.to_string()
     }
@@ -846,10 +854,15 @@ impl Color for HSL {
         self
     }
 
-    fn fade(self, amount: u8) -> RGBA {
-        let RGB { r, g, b } = self.to_rgb();
+    fn fade(self, amount: u8) -> Self::Alpha {
+        let HSL { h, s, l } = self;
 
-        RGBA::new(r.as_u8(), g.as_u8(), b.as_u8(), amount)
+        HSLA {
+            h,
+            s,
+            l,
+            a: Ratio::from_u8(amount),
+        }
     }
 
     fn spin(self, amount: i16) -> RGB {
@@ -866,8 +879,8 @@ impl Color for HSL {
         HSL { h: new_hue, s, l }.to_rgb()
     }
 
-    fn mix<T: Color>(self, other: T, weight: u8) -> RGBA {
-        self.to_rgba().mix(other, weight)
+    fn mix<T: Color>(self, other: T, weight: u8) -> Self::Alpha {
+        self.to_hsla().mix(other, weight)
     }
 
     fn tint(self, _weight: u8) -> RGBA {
@@ -965,6 +978,8 @@ impl HSLA {
 }
 
 impl Color for HSLA {
+    type Alpha = Self;
+
     fn to_css(self) -> String {
         self.to_string()
     }
@@ -1053,18 +1068,23 @@ impl Color for HSLA {
         }
     }
 
-    fn fade(self, amount: u8) -> RGBA {
-        let RGB { r, g, b } = self.to_rgb();
+    fn fade(self, amount: u8) -> Self::Alpha {
+        let HSLA { h, s, l, .. } = self;
 
-        RGBA::new(r.as_u8(), g.as_u8(), b.as_u8(), amount)
+        HSLA {
+            h,
+            s,
+            l,
+            a: Ratio::from_u8(amount),
+        }
     }
 
     fn spin(self, amount: i16) -> RGB {
         self.to_hsl().spin(amount).to_rgb()
     }
 
-    fn mix<T: Color>(self, other: T, weight: u8) -> RGBA {
-        self.to_rgba().mix(other, weight)
+    fn mix<T: Color>(self, other: T, weight: u8) -> Self::Alpha {
+        self.to_rgba().mix(other, weight).to_hsla()
     }
 
     fn tint(self, _weight: u8) -> RGBA {
@@ -1510,8 +1530,8 @@ mod css_color_tests {
 
         assert_eq!(RGB::new(23, 98, 119).fade(50), faded_color);
         assert_eq!(RGBA::new(23, 98, 119, 255).fade(50), faded_color);
-        assert_eq!(HSL::new(193, 67, 28).fade(50), faded_color);
-        assert_eq!(HSLA::new(193, 67, 28, 255).fade(50), faded_color);
+        assert_eq!(HSL::new(193, 67, 28).fade(50), faded_color.to_hsla());
+        assert_eq!(HSLA::new(193, 67, 28, 255).fade(50), faded_color.to_hsla());
     }
 
     #[test]
