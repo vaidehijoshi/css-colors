@@ -461,12 +461,12 @@ impl Color for RGB {
         self.to_rgba().mix(other, weight)
     }
 
-    fn tint(self, _weight: Ratio) -> Self {
-        self.to_rgba().tint(_weight).to_rgb()
+    fn tint(self, weight: Ratio) -> Self {
+        self.to_rgba().tint(weight).to_rgb()
     }
 
-    fn shade(self, _weight: Ratio) -> Self {
-        self.to_rgba().shade(_weight).to_rgb()
+    fn shade(self, weight: Ratio) -> Self {
+        self.to_rgba().shade(weight).to_rgb()
     }
 
     fn greyscale(self) -> Self {
@@ -662,12 +662,12 @@ impl Color for RGBA {
         }
     }
 
-    fn tint(self, _weight: Ratio) -> Self {
-        self.mix(RGBA::new(255, 255, 255, 255), _weight)
+    fn tint(self, weight: Ratio) -> Self {
+        self.mix(RGBA::new(255, 255, 255, 255), weight)
     }
 
-    fn shade(self, _weight: Ratio) -> Self {
-        self.mix(RGBA::new(0, 0, 0, 255), _weight)
+    fn shade(self, weight: Ratio) -> Self {
+        self.mix(RGBA::new(0, 0, 0, 255), weight)
     }
 
     fn greyscale(self) -> Self {
@@ -865,12 +865,12 @@ impl Color for HSL {
         self.to_hsla().mix(other, weight)
     }
 
-    fn tint(self, _weight: Ratio) -> Self {
-        self.to_rgba().tint(_weight).to_hsl()
+    fn tint(self, weight: Ratio) -> Self {
+        self.to_rgba().tint(weight).to_hsl()
     }
 
-    fn shade(self, _weight: Ratio) -> Self {
-        self.to_rgba().shade(_weight).to_hsl()
+    fn shade(self, weight: Ratio) -> Self {
+        self.to_rgba().shade(weight).to_hsl()
     }
 
     fn greyscale(self) -> Self {
@@ -1069,12 +1069,12 @@ impl Color for HSLA {
         self.to_rgba().mix(other, weight).to_hsla()
     }
 
-    fn tint(self, _weight: Ratio) -> Self {
-        self.to_rgba().tint(_weight).to_hsla()
+    fn tint(self, weight: Ratio) -> Self {
+        self.to_rgba().tint(weight).to_hsla()
     }
 
-    fn shade(self, _weight: Ratio) -> Self {
-        self.to_rgba().shade(_weight).to_hsla()
+    fn shade(self, weight: Ratio) -> Self {
+        self.to_rgba().shade(weight).to_hsla()
     }
 
     fn greyscale(self) -> Self {
