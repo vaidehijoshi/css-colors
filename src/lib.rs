@@ -339,82 +339,20 @@ impl Color for RGB {
     }
 
     fn to_rgba(self) -> RGBA {
-        self.fade(percent(100))
+        let RGB { r, g, b } = self;
+
+        RGBA {
+            r,
+            g,
+            b,
+            a: percent(100),
+        }
     }
 
     /// The algorithm for converting from rgb to hsl format, which determines
     /// the equivalent luminosity, saturation, and hue.
     fn to_hsl(self) -> HSL {
-        let RGB { r, g, b } = self;
-
-        // If r, g, and b are the same, the color is a shade of grey (between
-        // black and white), with no hue or saturation. In that situation, there
-        // is no saturation or hue, and we can use any value to determine luminosity.
-        if r == g && g == b {
-            return HSL {
-                h: degrees(0), // h
-                s: percent(0), // s
-                l: r,          // l
-            };
-        }
-
-        // Otherwise, to determine luminosity, we conver the RGB values into a
-        // percentage value, find the max and the min of those values, sum them
-        // together, and divide by 2.
-        let r = self.r.as_f32();
-        let g = self.g.as_f32();
-        let b = self.b.as_f32();
-
-        // let max = vec![r, g, b].iter().max().to_f32()
-        let max = if r > g && r > b {
-            r
-        } else if g > b {
-            g
-        } else {
-            b
-        };
-
-        let min = if r < g && r < b {
-            r
-        } else if g < b {
-            g
-        } else {
-            b
-        };
-
-        let luminosity = (max + min) / 2.0;
-
-        // To find the saturation, we look at the max and min values.
-        // If the max and the min are the same, there is no saturation to the color.
-        // Otherwise, we calculate the saturation based on if the luminosity is
-        // greater than or less than 0.5.
-        let saturation = if max == min {
-            0.0
-        } else if luminosity < 0.5 {
-            (max - min) / (max + min)
-        } else {
-            (max - min) / (2.0 - (max + min))
-        };
-
-        // To calculate the hue, we look at which value (r, g, or b) is the max.
-        // Based on that, we subtract the difference between the other two values,
-        // adding 120 or 240 deg to account for the degrees on the color wheel, and
-        // then dividing that by the difference between the max and the min values.
-        // Finally, we multiply the hue value by 60 to convert it to degrees on
-        // the color wheel, accounting for negative hues as well.
-        let hue = if max == r {
-            60.0 * (g - b) / (max - min)
-        } else if max == g {
-            120.0 + 60.0 * (b - r) / (max - min)
-        } else {
-            240.0 + 60.0 * (r - g) / (max - min)
-        };
-
-        HSL {
-            h: degrees(hue.round() as i16),
-            s: Ratio::from_f32(saturation),
-            l: Ratio::from_f32(luminosity),
-        }
+        self.to_rgba().to_hsl()
     }
 
     fn to_hsla(self) -> HSLA {
@@ -422,19 +360,19 @@ impl Color for RGB {
     }
 
     fn saturate(self, amount: Ratio) -> Self {
-        self.to_hsl().saturate(amount).to_rgb()
+        self.to_rgba().saturate(amount).to_rgb()
     }
 
     fn desaturate(self, amount: Ratio) -> Self {
-        self.to_hsl().desaturate(amount).to_rgb()
+        self.to_rgba().desaturate(amount).to_rgb()
     }
 
     fn lighten(self, amount: Ratio) -> Self {
-        self.to_hsl().lighten(amount).to_rgb()
+        self.to_rgba().lighten(amount).to_rgb()
     }
 
     fn darken(self, amount: Ratio) -> Self {
-        self.to_hsl().darken(amount).to_rgb()
+        self.to_rgba().darken(amount).to_rgb()
     }
 
     fn fadein(self, _amount: Ratio) -> Self {
@@ -446,12 +384,11 @@ impl Color for RGB {
     }
 
     fn fade(self, amount: Ratio) -> RGBA {
-        let RGB { r, g, b } = self;
-        RGBA { r, g, b, a: amount }
+        self.to_rgba().fade(amount)
     }
 
     fn spin(self, amount: Angle) -> Self {
-        self.to_hsl().spin(amount).to_rgb()
+        self.to_rgba().spin(amount).to_rgb()
     }
 
     fn mix<T: Color>(self, other: T, weight: Ratio) -> RGBA {
@@ -467,7 +404,7 @@ impl Color for RGB {
     }
 
     fn greyscale(self) -> Self {
-        self.to_hsl().greyscale().to_rgb()
+        self.to_rgba().greyscale().to_rgb()
     }
 }
 
@@ -544,12 +481,81 @@ impl Color for RGBA {
     }
 
     fn to_hsl(self) -> HSL {
-        self.to_rgb().to_hsl()
+        self.to_hsla().to_hsl()
     }
 
     fn to_hsla(self) -> HSLA {
-        let HSL { h, s, l } = self.to_hsl();
-        HSLA { h, s, l, a: self.a }
+        let RGBA { r, g, b, a } = self;
+
+        // If r, g, and b are the same, the color is a shade of grey (between
+        // black and white), with no hue or saturation. In that situation, there
+        // is no saturation or hue, and we can use any value to determine luminosity.
+        if r == g && g == b {
+            return HSLA {
+                h: degrees(0),
+                s: percent(0),
+                l: r,
+                a,
+            };
+        }
+
+        // Otherwise, to determine luminosity, we conver the RGB values into a
+        // percentage value, find the max and the min of those values, sum them
+        // together, and divide by 2.
+        let r = self.r.as_f32();
+        let g = self.g.as_f32();
+        let b = self.b.as_f32();
+
+        let max = if r > g && r > b {
+            r
+        } else if g > b {
+            g
+        } else {
+            b
+        };
+
+        let min = if r < g && r < b {
+            r
+        } else if g < b {
+            g
+        } else {
+            b
+        };
+
+        let luminosity = (max + min) / 2.0;
+
+        // To find the saturation, we look at the max and min values.
+        // If the max and the min are the same, there is no saturation to the color.
+        // Otherwise, we calculate the saturation based on if the luminosity is
+        // greater than or less than 0.5.
+        let saturation = if max == min {
+            0.0
+        } else if luminosity < 0.5 {
+            (max - min) / (max + min)
+        } else {
+            (max - min) / (2.0 - (max + min))
+        };
+
+        // To calculate the hue, we look at which value (r, g, or b) is the max.
+        // Based on that, we subtract the difference between the other two values,
+        // adding 120 or 240 deg to account for the degrees on the color wheel, and
+        // then dividing that by the difference between the max and the min values.
+        // Finally, we multiply the hue value by 60 to convert it to degrees on
+        // the color wheel, accounting for negative hues as well.
+        let hue = if max == r {
+            60.0 * (g - b) / (max - min)
+        } else if max == g {
+            120.0 + 60.0 * (b - r) / (max - min)
+        } else {
+            240.0 + 60.0 * (r - g) / (max - min)
+        };
+
+        HSLA {
+            h: degrees(hue.round() as i16),
+            s: Ratio::from_f32(saturation),
+            l: Ratio::from_f32(luminosity),
+            a,
+        }
     }
 
     fn saturate(self, amount: Ratio) -> Self {
@@ -582,7 +588,7 @@ impl Color for RGBA {
     }
 
     fn spin(self, amount: Angle) -> Self {
-        self.to_hsl().spin(amount).to_rgba()
+        self.to_hsla().spin(amount).to_rgba()
     }
 
     // This algorithm takes into account both the user-provided weight (w) and
@@ -644,7 +650,7 @@ impl Color for RGBA {
     }
 
     fn greyscale(self) -> Self {
-        self.to_hsl().greyscale().to_rgba()
+        self.to_hsla().greyscale().to_rgba()
     }
 }
 
@@ -701,49 +707,7 @@ impl Color for HSL {
     }
 
     fn to_rgb(self) -> RGB {
-        let hue = self.h;
-        let s = self.s.as_f32();
-        let l = self.l.as_f32();
-
-        // If there is no saturation, the color is a shade of grey.
-        // We can convert the luminosity and set r, g, and b to that value.
-        if s == 0.0 {
-            return RGB {
-                r: self.l,
-                g: self.l,
-                b: self.l,
-            };
-        }
-
-        // If the color is not a grey, then we need to create a temporary variable to continue with the algorithm.
-        // If the luminosity is less than 50%, we add 1.0 to the saturation and multiply by the luminosity.
-        // Otherwise, we add the luminosity and saturation, and subtract the product of luminosity and saturation from it.
-        let temp_1 = if l < 0.5 {
-            l * (1.0 + s)
-        } else {
-            (l + s) - (l * s)
-        };
-
-        // Another temporary variable.
-        let temp_2 = (2.0 * l) - temp_1;
-
-        // Create a rotation of 120 degrees in order to divide the angle into thirds.
-        let rotation = Angle::new(120);
-
-        // Then rotate the circle clockwise by 1/3 for the red value, and by 2/3rds for the blue value.
-        let temporary_r = (hue + rotation).degrees();
-        let temporary_g = hue.degrees();
-        let temporary_b = (hue - rotation).degrees();
-
-        let red = to_rgb_value(temporary_r, temp_1, temp_2);
-        let green = to_rgb_value(temporary_g, temp_1, temp_2);
-        let blue = to_rgb_value(temporary_b, temp_1, temp_2);
-
-        RGB {
-            r: Ratio::from_f32(red),
-            g: Ratio::from_f32(green),
-            b: Ratio::from_f32(blue),
-        }
+        self.to_hsla().to_rgb()
     }
 
     fn to_rgba(self) -> RGBA {
@@ -755,47 +719,30 @@ impl Color for HSL {
     }
 
     fn to_hsla(self) -> HSLA {
-        self.fade(percent(100))
+        let HSL { h, s, l } = self;
+
+        HSLA {
+            h,
+            s,
+            l,
+            a: percent(100),
+        }
     }
 
     fn saturate(self, amount: Ratio) -> Self {
-        let HSL { h, s, l } = self;
-
-        HSL {
-            h,
-            s: s + amount,
-            l,
-        }
+        self.to_hsla().saturate(amount).to_hsl()
     }
 
     fn desaturate(self, amount: Ratio) -> Self {
-        let HSL { h, s, l } = self;
-
-        HSL {
-            h,
-            s: s - amount,
-            l,
-        }
+        self.to_hsla().desaturate(amount).to_hsl()
     }
 
     fn lighten(self, amount: Ratio) -> Self {
-        let HSL { h, s, l } = self;
-
-        HSL {
-            h,
-            s,
-            l: l + amount,
-        }
+        self.to_hsla().lighten(amount).to_hsl()
     }
 
     fn darken(self, amount: Ratio) -> Self {
-        let HSL { h, s, l } = self;
-
-        HSL {
-            h,
-            s,
-            l: l - amount,
-        }
+        self.to_hsla().darken(amount).to_hsl()
     }
 
     fn fadein(self, _amount: Ratio) -> Self {
@@ -807,18 +754,11 @@ impl Color for HSL {
     }
 
     fn fade(self, amount: Ratio) -> Self::Alpha {
-        let HSL { h, s, l } = self;
-        HSLA { h, s, l, a: amount }
+        self.to_hsla().fade(amount)
     }
 
     fn spin(self, amount: Angle) -> Self {
-        let HSL { h, s, l } = self;
-
-        HSL {
-            h: h + amount,
-            s,
-            l,
-        }
+        self.to_hsla().spin(amount).to_hsl()
     }
 
     fn mix<T: Color>(self, other: T, weight: Ratio) -> Self::Alpha {
@@ -826,21 +766,15 @@ impl Color for HSL {
     }
 
     fn tint(self, weight: Ratio) -> Self {
-        self.to_rgba().tint(weight).to_hsl()
+        self.to_hsla().tint(weight).to_hsl()
     }
 
     fn shade(self, weight: Ratio) -> Self {
-        self.to_rgba().shade(weight).to_hsl()
+        self.to_hsla().shade(weight).to_hsl()
     }
 
     fn greyscale(self) -> Self {
-        let HSL { h, s: _, l } = self;
-
-        HSL {
-            h,
-            s: percent(0),
-            l,
-        }
+        self.to_hsla().greyscale().to_hsl()
     }
 }
 
@@ -927,12 +861,56 @@ impl Color for HSLA {
     }
 
     fn to_rgb(self) -> RGB {
-        self.to_hsl().to_rgb()
+        self.to_rgba().to_rgb()
     }
 
     fn to_rgba(self) -> RGBA {
-        let RGB { r, g, b } = self.to_rgb();
-        RGBA { r, g, b, a: self.a }
+        let HSLA { h, s, l, a } = self;
+
+        // If there is no saturation, the color is a shade of grey.
+        // We can convert the luminosity and set r, g, and b to that value.
+        if s == percent(0) {
+            return RGBA {
+                r: l,
+                g: l,
+                b: l,
+                a,
+            };
+        }
+
+        let s = s.as_f32();
+        let l = l.as_f32();
+
+        // If the color is not a grey, then we need to create a temporary variable to continue with the algorithm.
+        // If the luminosity is less than 50%, we add 1.0 to the saturation and multiply by the luminosity.
+        // Otherwise, we add the luminosity and saturation, and subtract the product of luminosity and saturation from it.
+        let temp_1 = if l < 0.5 {
+            l * (1.0 + s)
+        } else {
+            (l + s) - (l * s)
+        };
+
+        // Another temporary variable.
+        let temp_2 = (2.0 * l) - temp_1;
+
+        // Create a rotation of 120 degrees in order to divide the angle into thirds.
+        let rotation = Angle::new(120);
+
+        // Then rotate the circle clockwise by 1/3 for the red value, and by 2/3rds for the blue value.
+        let temporary_r = (h + rotation).degrees();
+        let temporary_g = h.degrees();
+        let temporary_b = (h - rotation).degrees();
+
+        let red = to_rgb_value(temporary_r, temp_1, temp_2);
+        let green = to_rgb_value(temporary_g, temp_1, temp_2);
+        let blue = to_rgb_value(temporary_b, temp_1, temp_2);
+
+        RGBA {
+            r: Ratio::from_f32(red),
+            g: Ratio::from_f32(green),
+            b: Ratio::from_f32(blue),
+            a,
+        }
     }
 
     fn to_hsl(self) -> HSL {
@@ -1002,7 +980,14 @@ impl Color for HSLA {
     }
 
     fn spin(self, amount: Angle) -> Self {
-        self.to_hsl().spin(amount).to_hsla()
+        let HSLA { h, s, l, a } = self;
+
+        HSLA {
+            h: h + amount,
+            s,
+            l,
+            a,
+        }
     }
 
     fn mix<T: Color>(self, other: T, weight: Ratio) -> Self::Alpha {
@@ -1018,7 +1003,14 @@ impl Color for HSLA {
     }
 
     fn greyscale(self) -> Self {
-        self.to_hsl().greyscale().to_hsla()
+        let HSLA { h, l, a, .. } = self;
+
+        HSLA {
+            h,
+            s: percent(0),
+            l,
+            a,
+        }
     }
 }
 
