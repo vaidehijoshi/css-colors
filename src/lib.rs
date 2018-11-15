@@ -287,6 +287,90 @@ mod css_color_tests {
     use ratio::*;
     use {Angle, Color, Ratio, HSL, HSLA, RGB, RGBA};
 
+    pub trait ApproximatelyEq {
+        fn approximately_eq(self, other: Self) -> bool;
+    }
+
+    impl ApproximatelyEq for u8 {
+        fn approximately_eq(self, other: Self) -> bool {
+            self == other || self + 1 == other || self - 1 == other
+        }
+    }
+
+    impl ApproximatelyEq for u16 {
+        fn approximately_eq(self, other: Self) -> bool {
+            self == other || self + 1 == other || self - 1 == other
+        }
+    }
+
+    impl ApproximatelyEq for Angle {
+        fn approximately_eq(self, other: Self) -> bool {
+            self.degrees().approximately_eq(other.degrees())
+        }
+    }
+
+    impl ApproximatelyEq for Ratio {
+        fn approximately_eq(self, other: Self) -> bool {
+            self.as_u8().approximately_eq(other.as_u8())
+        }
+    }
+
+    impl ApproximatelyEq for RGB {
+        fn approximately_eq(self, other: Self) -> bool {
+            self.r.approximately_eq(other.r)
+                && self.g.approximately_eq(other.g)
+                && self.b.approximately_eq(other.b)
+        }
+    }
+
+    impl ApproximatelyEq for RGBA {
+        fn approximately_eq(self, other: Self) -> bool {
+            self.r.approximately_eq(other.r)
+                && self.g.approximately_eq(other.g)
+                && self.b.approximately_eq(other.b)
+                && self.a == other.a
+        }
+    }
+
+    impl ApproximatelyEq for HSL {
+        fn approximately_eq(self, other: Self) -> bool {
+            self.h.approximately_eq(other.h)
+                && self
+                    .s
+                    .as_percentage()
+                    .approximately_eq(other.s.as_percentage())
+                && self
+                    .l
+                    .as_percentage()
+                    .approximately_eq(other.l.as_percentage())
+        }
+    }
+
+    impl ApproximatelyEq for HSLA {
+        fn approximately_eq(self, other: Self) -> bool {
+            self.h.approximately_eq(other.h)
+                && self
+                    .s
+                    .as_percentage()
+                    .approximately_eq(other.s.as_percentage())
+                && self
+                    .l
+                    .as_percentage()
+                    .approximately_eq(other.l.as_percentage())
+                && self.a == other.a
+        }
+    }
+
+    #[macro_export]
+    macro_rules! assert_approximately_eq {
+        ($lhs:expr, $rhs:expr) => {
+            let lhs = $lhs;
+            let rhs = $rhs;
+
+            assert!(lhs.approximately_eq(rhs), "lhs: {}, rhs: {}", lhs, rhs);
+        };
+    }
+
     #[test]
     fn can_create_color_structs() {
         assert_eq!(
@@ -327,92 +411,6 @@ mod css_color_tests {
 
     #[macro_use]
     mod conversions {
-        use crate::{Angle, Ratio, HSL, HSLA, RGB, RGBA};
-
-        pub trait ApproximatelyEq {
-            fn approximately_eq(self, other: Self) -> bool;
-        }
-
-        impl ApproximatelyEq for u8 {
-            fn approximately_eq(self, other: Self) -> bool {
-                self == other || self + 1 == other || self - 1 == other
-            }
-        }
-
-        impl ApproximatelyEq for u16 {
-            fn approximately_eq(self, other: Self) -> bool {
-                self == other || self + 1 == other || self - 1 == other
-            }
-        }
-
-        impl ApproximatelyEq for Angle {
-            fn approximately_eq(self, other: Self) -> bool {
-                self.degrees().approximately_eq(other.degrees())
-            }
-        }
-
-        impl ApproximatelyEq for Ratio {
-            fn approximately_eq(self, other: Self) -> bool {
-                self.as_u8().approximately_eq(other.as_u8())
-            }
-        }
-
-        impl ApproximatelyEq for RGB {
-            fn approximately_eq(self, other: Self) -> bool {
-                self.r.approximately_eq(other.r)
-                    && self.g.approximately_eq(other.g)
-                    && self.b.approximately_eq(other.b)
-            }
-        }
-
-        impl ApproximatelyEq for RGBA {
-            fn approximately_eq(self, other: Self) -> bool {
-                self.r.approximately_eq(other.r)
-                    && self.g.approximately_eq(other.g)
-                    && self.b.approximately_eq(other.b)
-                    && self.a == other.a
-            }
-        }
-
-        impl ApproximatelyEq for HSL {
-            fn approximately_eq(self, other: Self) -> bool {
-                self.h.approximately_eq(other.h)
-                    && self
-                        .s
-                        .as_percentage()
-                        .approximately_eq(other.s.as_percentage())
-                    && self
-                        .l
-                        .as_percentage()
-                        .approximately_eq(other.l.as_percentage())
-            }
-        }
-
-        impl ApproximatelyEq for HSLA {
-            fn approximately_eq(self, other: Self) -> bool {
-                self.h.approximately_eq(other.h)
-                    && self
-                        .s
-                        .as_percentage()
-                        .approximately_eq(other.s.as_percentage())
-                    && self
-                        .l
-                        .as_percentage()
-                        .approximately_eq(other.l.as_percentage())
-                    && self.a == other.a
-            }
-        }
-
-        #[macro_export]
-        macro_rules! assert_approximately_eq {
-            ($lhs:expr, $rhs:expr) => {
-                let lhs = $lhs;
-                let rhs = $rhs;
-
-                assert!(lhs.approximately_eq(rhs), "lhs: {}, rhs: {}", lhs, rhs);
-            };
-        }
-
         macro_rules! conversion_test {
             (
                 $color_name:ident,
@@ -420,7 +418,7 @@ mod css_color_tests {
                 hsl($h:expr, $s:expr, $l:expr)
             ) => {
                 mod $color_name {
-                    use super::ApproximatelyEq;
+                    use super::super::ApproximatelyEq;
                     use $crate::{Color, HSL, HSLA, RGB, RGBA};
 
                     #[test]
@@ -613,8 +611,6 @@ mod css_color_tests {
         conversion_test!(deep_pink, rgb(255, 20, 147), hsl(328, 100, 54));
         conversion_test!(chartreuse, rgb(127, 255, 0), hsl(90, 100, 50));
     }
-
-    use self::conversions::ApproximatelyEq;
 
     #[test]
     fn can_saturate() {
