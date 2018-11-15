@@ -1,4 +1,4 @@
-use super::{degrees, percent, Angle, Color, Ratio, RGB, RGBA};
+use super::{deg, percent, Angle, Color, Ratio, RGB, RGBA};
 use std::fmt;
 
 #[derive(Debug, Copy, Clone, PartialEq)]
@@ -172,7 +172,7 @@ impl fmt::Display for HSLA {
         write!(
             f,
             "hsla({}, {}, {}, {:.02})",
-            self.h,
+            self.h.degrees(),
             self.s,
             self.l,
             self.a.as_f32()
@@ -190,9 +190,9 @@ impl HSLA {
     ///
     /// assert_eq!(light_salmon, HSLA { h: Angle::new(6), s: Ratio::from_percentage(93), l: Ratio::from_percentage(71), a: Ratio::from_percentage(50) });
     /// ```
-    pub fn new(h: i16, s: u8, l: u8, a: u8) -> HSLA {
+    pub fn new(h: i32, s: u8, l: u8, a: u8) -> HSLA {
         HSLA {
-            h: degrees(h),
+            h: deg(h),
             s: percent(s),
             l: percent(l),
             a: Ratio::from_u8(a),

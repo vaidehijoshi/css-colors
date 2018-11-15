@@ -205,13 +205,13 @@ pub trait Color {
     ///
     /// # Examples
     /// ```
-    /// use css_colors::{Color, RGB, HSL, degrees};
+    /// use css_colors::{Color, RGB, HSL, deg};
     ///
     /// let red = HSL::new(10, 90, 50);
     /// let pink = RGB::new(243, 13, 90);
     ///
-    /// assert_eq!(red.spin(degrees(30)), HSL::new(40, 90, 50));
-    /// assert_eq!(pink.spin(degrees(-30)), RGB::new(243, 13, 205));
+    /// assert_eq!(red.spin(deg(30)), HSL::new(40, 90, 50));
+    /// assert_eq!(pink.spin(deg(-30)), RGB::new(243, 13, 205));
     /// ```
     fn spin(self, amount: Angle) -> Self;
 
@@ -745,37 +745,28 @@ mod css_color_tests {
 
     #[test]
     fn can_spin_forward() {
+        assert_approximately_eq!(RGB::new(75, 207, 23).spin(deg(100)), RGB::new(23, 136, 207));
         assert_approximately_eq!(
-            RGB::new(75, 207, 23).spin(degrees(100)),
-            RGB::new(23, 136, 207)
-        );
-        assert_approximately_eq!(
-            RGBA::new(75, 207, 23, 255).spin(degrees(100)),
+            RGBA::new(75, 207, 23, 255).spin(deg(100)),
             RGBA::new(23, 136, 207, 255)
         );
-        assert_approximately_eq!(HSL::new(10, 90, 50).spin(degrees(30)), HSL::new(40, 90, 50));
+        assert_approximately_eq!(HSL::new(10, 90, 50).spin(deg(30)), HSL::new(40, 90, 50));
         assert_approximately_eq!(
-            HSLA::new(10, 90, 50, 255).spin(degrees(30)),
+            HSLA::new(10, 90, 50, 255).spin(deg(30)),
             HSLA::new(40, 90, 50, 255)
         );
     }
 
     #[test]
     fn can_spin_backwards() {
+        assert_approximately_eq!(RGB::new(75, 207, 23).spin(deg(-100)), RGB::new(207, 32, 23));
         assert_approximately_eq!(
-            RGB::new(75, 207, 23).spin(degrees(-100)),
-            RGB::new(207, 32, 23)
-        );
-        assert_approximately_eq!(
-            RGBA::new(75, 207, 23, 255).spin(degrees(-100)),
+            RGBA::new(75, 207, 23, 255).spin(deg(-100)),
             RGBA::new(207, 32, 23, 255)
         );
+        assert_approximately_eq!(HSL::new(10, 90, 50).spin(deg(-30)), HSL::new(340, 90, 50));
         assert_approximately_eq!(
-            HSL::new(10, 90, 50).spin(degrees(-30)),
-            HSL::new(340, 90, 50)
-        );
-        assert_approximately_eq!(
-            HSLA::new(10, 90, 50, 255).spin(degrees(-30)),
+            HSLA::new(10, 90, 50, 255).spin(deg(-30)),
             HSLA::new(340, 90, 50, 255)
         );
     }

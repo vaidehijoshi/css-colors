@@ -1,4 +1,4 @@
-use super::{degrees, percent, Angle, Color, Ratio, HSL, HSLA};
+use super::{deg, percent, Angle, Color, Ratio, HSL, HSLA};
 use std::fmt;
 
 #[derive(Debug, Copy, Clone, PartialEq)]
@@ -215,7 +215,7 @@ impl Color for RGBA {
         // is no saturation or hue, and we can use any value to determine luminosity.
         if r == g && g == b {
             return HSLA {
-                h: degrees(0),
+                h: deg(0),
                 s: percent(0),
                 l: r,
                 a,
@@ -274,7 +274,7 @@ impl Color for RGBA {
         };
 
         HSLA {
-            h: degrees(hue.round() as i16),
+            h: deg(hue.round() as i32),
             s: Ratio::from_f32(saturation),
             l: Ratio::from_f32(luminosity),
             a,

@@ -1,7 +1,19 @@
 use std::fmt;
 use std::ops;
 
-pub fn degrees(mut degrees: i16) -> Angle {
+/// Construct an angle from degrees. Angles outside of the 0-359° range will be
+/// normalized accordingly.
+///
+/// # Example
+/// ```
+/// use css_colors::{deg};
+///
+/// assert_eq!(deg(0).to_string(), "0deg");
+/// assert_eq!(deg(90).to_string(), "90deg");
+/// assert_eq!(deg(540).to_string(), "180deg");
+/// assert_eq!(deg(-90).to_string(), "270deg");
+/// ```
+pub fn deg(mut degrees: i32) -> Angle {
     while degrees < 0 {
         degrees += 360;
     }
@@ -34,7 +46,7 @@ impl Angle {
 
 impl fmt::Display for Angle {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}", self.degrees)
+        write!(f, "{}deg", self.degrees)
     }
 }
 
@@ -105,8 +117,8 @@ mod tests {
 
     #[test]
     fn can_display_angles() {
-        assert_eq!("30", format!("{}", Angle::new(30)));
-        assert_eq!("30", Angle::new(30).to_string());
+        assert_eq!("30deg", format!("{}", Angle::new(30)));
+        assert_eq!("30deg", Angle::new(30).to_string());
     }
 
     #[test]
