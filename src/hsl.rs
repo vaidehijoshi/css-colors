@@ -1,6 +1,61 @@
 use super::{deg, percent, Angle, Color, Ratio, RGB, RGBA};
 use std::fmt;
 
+/// Constructs a HSL Color from numerical values, similar to the
+/// [`hsl` function](css-hsl) in CSS.
+///
+/// The hue component is expressed in degrees. Values outside of
+/// the 0-359° range will be normalized accordingly. The saturation
+/// and lightness components are expressed in percentages. Values
+/// outside of the 0-100% range will cause a panic.
+///
+/// # Example
+/// ```
+/// use css_colors::{Color, hsl};
+///
+/// let salmon = hsl(6, 93, 71);
+///
+/// assert_eq!(salmon.to_css(), "hsl(6, 93%, 71%)");
+/// ```
+///
+/// [css-hsl]: https://www.w3.org/TR/css-color-3/#hsl-color
+pub fn hsl(h: i32, s: u8, l: u8) -> HSL {
+    HSL {
+        h: deg(h),
+        s: percent(s),
+        l: percent(l),
+    }
+}
+
+/// Constructs a HSLA Color from numerical values, similar to the
+/// [`hsla` function](css-hsla) in CSS.
+///
+/// The hue component is expressed in degrees. Values outside of
+/// the 0-359° range will be normalized accordingly. The saturation
+/// and lightness components are expressed in percentages. Values
+/// outside of the 0-100% range will cause a panic. The alpha value
+/// is expressed as a float. Values outside of the 0.0-1.0 range will
+/// cause a panic.
+///
+/// # Example
+/// ```
+/// use css_colors::{Color, hsla};
+///
+/// let salmon = hsla(6, 93, 71, 0.50);
+///
+/// assert_eq!(salmon.to_css(), "hsla(6, 93%, 71%, 0.50)");
+/// ```
+///
+/// [css-hsla]: https://www.w3.org/TR/css-color-3/#hsla-color
+pub fn hsla(h: i32, s: u8, l: u8, a: f32) -> HSLA {
+    HSLA {
+        h: deg(h),
+        s: percent(s),
+        l: percent(l),
+        a: Ratio::from_f32(a),
+    }
+}
+
 #[derive(Debug, Copy, Clone, PartialEq)]
 /// A struct to represent how much hue, saturation, and luminosity should be added to create a color.
 /// The hue is a degree on the color wheel; 0 (or 360) is red, 120 is green, 240 is blue.
@@ -23,26 +78,6 @@ pub struct HSL {
 impl fmt::Display for HSL {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "hsl({}, {}, {})", self.h.degrees(), self.s, self.l)
-    }
-}
-
-impl HSL {
-    /// Transforms numerical values into a HSL struct.
-    ///
-    /// # Example
-    /// ```
-    /// use css_colors::{HSL, Angle, Ratio};
-    ///
-    /// let salmon = HSL::new(6, 93, 71);
-    ///
-    /// assert_eq!(salmon, HSL { h: Angle::new(6), s: Ratio::from_percentage(93), l: Ratio::from_percentage(71) });
-    /// ```
-    pub fn new(h: u16, s: u8, l: u8) -> HSL {
-        HSL {
-            h: Angle::new(h),
-            s: Ratio::from_percentage(s),
-            l: Ratio::from_percentage(l),
-        }
     }
 }
 
@@ -177,26 +212,6 @@ impl fmt::Display for HSLA {
             self.l,
             self.a.as_f32()
         )
-    }
-}
-
-impl HSLA {
-    /// Transforms numerical values into a HSL struct.
-    ///
-    /// # Example
-    /// ```
-    /// use css_colors::{HSLA, Angle, Ratio};
-    /// let light_salmon = HSLA::new(6, 93, 71, 128);
-    ///
-    /// assert_eq!(light_salmon, HSLA { h: Angle::new(6), s: Ratio::from_percentage(93), l: Ratio::from_percentage(71), a: Ratio::from_percentage(50) });
-    /// ```
-    pub fn new(h: i32, s: u8, l: u8, a: u8) -> HSLA {
-        HSLA {
-            h: deg(h),
-            s: percent(s),
-            l: percent(l),
-            a: Ratio::from_u8(a),
-        }
     }
 }
 

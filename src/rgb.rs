@@ -1,6 +1,52 @@
 use super::{deg, percent, Angle, Color, Ratio, HSL, HSLA};
 use std::fmt;
 
+/// Constructs a RGB Color from numerical values, similar to the
+/// [`rgb` function](css-rgb) in CSS.
+///
+/// # Example
+/// ```
+/// use css_colors::{Color, rgb};
+///
+/// let salmon = rgb(250, 128, 114);
+///
+/// assert_eq!(salmon.to_css(), "rgb(250, 128, 114)");
+/// ```
+///
+/// [css-rgb]: https://www.w3.org/TR/css-color-3/#rgb-color
+pub fn rgb(r: u8, g: u8, b: u8) -> RGB {
+    RGB {
+        r: Ratio::from_u8(r),
+        g: Ratio::from_u8(g),
+        b: Ratio::from_u8(b),
+    }
+}
+
+/// Constructs a RGB Color from numerical values, similar to the
+/// [`rgba` function](css-rgba) in CSS.
+///
+/// The alpha value is expressed as a float. Values outside of the
+/// 0.0-1.0 range will cause a panic.
+///
+/// # Example
+/// ```
+/// use css_colors::{Color, rgba};
+///
+/// let salmon = rgba(250, 128, 114, 0.50);
+///
+/// assert_eq!(salmon.to_css(), "rgba(250, 128, 114, 0.50)");
+/// ```
+///
+/// [css-rgba]: https://www.w3.org/TR/css-color-3/#rgba-color
+pub fn rgba(r: u8, g: u8, b: u8, a: f32) -> RGBA {
+    RGBA {
+        r: Ratio::from_u8(r),
+        g: Ratio::from_u8(g),
+        b: Ratio::from_u8(b),
+        a: Ratio::from_f32(a),
+    }
+}
+
 #[derive(Debug, Copy, Clone, PartialEq)]
 /// A struct to represent how much red, green, and blue should be added to create a color.
 ///
@@ -27,26 +73,6 @@ impl fmt::Display for RGB {
             self.g.as_u8(),
             self.b.as_u8()
         )
-    }
-}
-
-impl RGB {
-    /// Transforms numerical values into an RGB struct.
-    ///
-    /// # Example
-    /// ```
-    /// use css_colors::{RGB, Ratio};
-    ///
-    /// let salmon = RGB::new(250, 128, 114);
-    ///
-    /// assert_eq!(salmon, RGB { r: Ratio::from_u8(250), g: Ratio::from_u8(128), b: Ratio::from_u8(114) });
-    /// ```
-    pub fn new(r: u8, g: u8, b: u8) -> RGB {
-        RGB {
-            r: Ratio::from_u8(r),
-            g: Ratio::from_u8(g),
-            b: Ratio::from_u8(b),
-        }
     }
 }
 
@@ -163,27 +189,6 @@ impl fmt::Display for RGBA {
             self.b.as_u8(),
             self.a.as_f32()
         )
-    }
-}
-
-impl RGBA {
-    /// Transforms numerical values into an RGBA struct.
-    ///
-    /// # Example
-    /// ```
-    /// use css_colors::{RGBA, Ratio};
-    ///
-    /// let light_salmon = RGBA::new(250, 128, 114, 128);
-    ///
-    /// assert_eq!(light_salmon, RGBA { r: Ratio::from_u8(250), g: Ratio::from_u8(128), b: Ratio::from_u8(114), a: Ratio::from_u8(128) });
-    /// ```
-    pub fn new(r: u8, g: u8, b: u8, a: u8) -> RGBA {
-        RGBA {
-            r: Ratio::from_u8(r),
-            g: Ratio::from_u8(g),
-            b: Ratio::from_u8(b),
-            a: Ratio::from_u8(a),
-        }
     }
 }
 
@@ -365,11 +370,11 @@ impl Color for RGBA {
     }
 
     fn tint(self, weight: Ratio) -> Self {
-        self.mix(RGB::new(255, 255, 255), weight)
+        self.mix(rgb(255, 255, 255), weight)
     }
 
     fn shade(self, weight: Ratio) -> Self {
-        self.mix(RGB::new(0, 0, 0), weight)
+        self.mix(rgb(0, 0, 0), weight)
     }
 
     fn greyscale(self) -> Self {
