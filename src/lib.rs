@@ -90,15 +90,15 @@ pub trait Color {
     ///
     /// # Examples
     /// ```
-    /// use css_colors::{Color, RGB, HSLA};
+    /// use css_colors::{Color, RGB, HSLA, percent};
     ///
     /// let salmon = HSLA::new(6, 93, 71, 255);
     /// let cornflower_blue = RGB::new(100, 149, 237);
     ///
-    /// assert_eq!(salmon.saturate(7), HSLA::new(6, 100, 71, 255));
-    /// assert_eq!(cornflower_blue.saturate(10), RGB::new(92, 146, 246));
+    /// assert_eq!(salmon.saturate(percent(7)), HSLA::new(6, 100, 71, 255));
+    /// assert_eq!(cornflower_blue.saturate(percent(10)), RGB::new(92, 146, 246));
     /// ```
-    fn saturate(self, amount: u8) -> Self;
+    fn saturate(self, amount: Ratio) -> Self;
 
     /// Decreases the saturation of `self` by an absolute amount.
     /// Operates on the color within its HSL representation and preserves any existing alpha channel.
@@ -106,15 +106,15 @@ pub trait Color {
     ///
     /// # Examples
     /// ```
-    /// use css_colors::{Color, RGB, RGBA};
+    /// use css_colors::{Color, RGB, RGBA, percent};
     ///
     /// let tomato = RGBA::new(255, 99, 71, 255);
     /// let cornflower_blue = RGB::new(100, 149, 237);
     ///
-    /// assert_eq!(tomato.desaturate(10), RGBA::new(246, 105, 80, 255));
-    /// assert_eq!(cornflower_blue.desaturate(33), RGB::new(129, 157, 209));
+    /// assert_eq!(tomato.desaturate(percent(10)), RGBA::new(246, 105, 80, 255));
+    /// assert_eq!(cornflower_blue.desaturate(percent(33)), RGB::new(129, 157, 209));
     /// ```
-    fn desaturate(self, amount: u8) -> Self;
+    fn desaturate(self, amount: Ratio) -> Self;
 
     /// Increases the lightness of `self` by an absolute amount.
     /// Operates on the color within its HSL representation and preserves any existing alpha channel.
@@ -122,15 +122,15 @@ pub trait Color {
     ///
     /// # Examples
     /// ```
-    /// use css_colors::{Color, RGB, RGBA};
+    /// use css_colors::{Color, RGB, RGBA, percent};
     ///
     /// let tomato = RGBA::new(255, 99, 71, 255);
     /// let cornflower_blue = RGB::new(100, 149, 237);
     ///
-    /// assert_eq!(tomato.lighten(20), RGBA::new(255, 185, 173, 255));
-    /// assert_eq!(cornflower_blue.lighten(33), RGB::new(251, 253, 255));
+    /// assert_eq!(tomato.lighten(percent(20)), RGBA::new(255, 185, 173, 255));
+    /// assert_eq!(cornflower_blue.lighten(percent(33)), RGB::new(251, 253, 255));
     /// ```
-    fn lighten(self, amount: u8) -> Self;
+    fn lighten(self, amount: Ratio) -> Self;
 
     /// Decreases the lightness of `self` by an absolute amount.
     /// Operates on the color within its HSL representation and preserves any existing alpha channel.
@@ -138,15 +138,15 @@ pub trait Color {
     ///
     /// # Examples
     /// ```
-    /// use css_colors::{Color, RGB, RGBA};
+    /// use css_colors::{Color, RGB, RGBA, percent};
     ///
     /// let tomato = RGBA::new(255, 99, 71, 255);
     /// let cornflower_blue = RGB::new(100, 149, 237);
     ///
-    /// assert_eq!(tomato.darken(20), RGBA::new(224, 34, 0, 255));
-    /// assert_eq!(cornflower_blue.darken(33), RGB::new(18, 65, 152));
+    /// assert_eq!(tomato.darken(percent(20)), RGBA::new(224, 34, 0, 255));
+    /// assert_eq!(cornflower_blue.darken(percent(33)), RGB::new(18, 65, 152));
     /// ```
-    fn darken(self, amount: u8) -> Self;
+    fn darken(self, amount: Ratio) -> Self;
 
     /// Decreases the transparency (or increase the opacity) of `self`, making it more opaque.
     /// Has no effect on opaque (non-alpha) colors.
@@ -154,15 +154,15 @@ pub trait Color {
     ///
     /// # Examples
     /// ```
-    /// use css_colors::{Color, RGB, RGBA};
+    /// use css_colors::{Color, RGB, RGBA, percent};
     ///
     /// let tomato = RGBA::new(255, 99, 71, 64);
     /// let cornflower_blue = RGB::new(100, 149, 237);
     ///
-    /// assert_eq!(tomato.fadein(64), RGBA::new(255, 99, 71, 128));
-    /// assert_eq!(cornflower_blue.fadein(128), RGB::new(100, 149, 237));
+    /// assert_eq!(tomato.fadein(percent(25)), RGBA::new(255, 99, 71, 128));
+    /// assert_eq!(cornflower_blue.fadein(percent(50)), RGB::new(100, 149, 237));
     /// ```
-    fn fadein(self, amount: u8) -> Self;
+    fn fadein(self, amount: Ratio) -> Self;
 
     /// Increases the transparency (or decrease the opacity) of `self`, making it less opaque.
     /// Has no effect on opaque (non-alpha) colors.
@@ -170,15 +170,15 @@ pub trait Color {
     ///
     /// # Examples
     /// ```
-    /// use css_colors::{Color, RGB, RGBA};
+    /// use css_colors::{Color, RGB, RGBA, percent};
     ///
     /// let tomato = RGBA::new(255, 99, 71, 128);
     /// let cornflower_blue = RGB::new(100, 149, 237);
     ///
-    /// assert_eq!(tomato.fadeout(64), RGBA::new(255, 99, 71, 64));
-    /// assert_eq!(cornflower_blue.fadeout(128), RGB::new(100, 149, 237));
+    /// assert_eq!(tomato.fadeout(percent(25)), RGBA::new(255, 99, 71, 64));
+    /// assert_eq!(cornflower_blue.fadeout(percent(50)), RGB::new(100, 149, 237));
     /// ```
-    fn fadeout(self, amount: u8) -> Self;
+    fn fadeout(self, amount: Ratio) -> Self;
 
     /// Sets the absolute opacity of `self`.
     /// Can be applied to colors whether they already have an opacity value or not.
@@ -186,15 +186,15 @@ pub trait Color {
     ///
     /// # Examples
     /// ```
-    /// use css_colors::{Color, RGB, RGBA};
+    /// use css_colors::{Color, RGB, RGBA, percent};
     ///
     /// let tomato = RGBA::new(255, 99, 71, 128);
     /// let cornflower_blue = RGB::new(100, 149, 237);
     ///
-    /// assert_eq!(tomato.fade(25), RGBA::new(255, 99, 71, 25));
-    /// assert_eq!(cornflower_blue.fade(128), RGBA::new(100, 149, 237, 128));
+    /// assert_eq!(tomato.fade(percent(25)), RGBA::new(255, 99, 71, 64));
+    /// assert_eq!(cornflower_blue.fade(percent(50)), RGBA::new(100, 149, 237, 128));
     /// ```
-    fn fade(self, amount: u8) -> Self::Alpha;
+    fn fade(self, amount: Ratio) -> Self::Alpha;
 
     /// Rotate the hue angle of `self` in either direction.
     /// Returns the appropriate `RGB` representation of the color once it has been spun.
@@ -224,7 +224,7 @@ pub trait Color {
     /// let golden = RGB::new(243, 166, 13);
     /// let navy = RGBA::new(0, 0, 80, 255);
     ///
-    /// assert_eq!(red.mix(navy, percent(50)), HSLA::new(347, 65, 29, 255));
+    /// assert_eq!(red.mix(navy, percent(50)).to_string(), "hsla(347, 65%, 29%, 1.00)");
     /// assert_eq!(golden.mix(navy, percent(25)), RGBA::new(61, 42, 63, 255));
     /// ```
     fn mix<T: Color>(self, other: T, weight: Ratio) -> Self::Alpha;
@@ -339,7 +339,7 @@ impl Color for RGB {
     }
 
     fn to_rgba(self) -> RGBA {
-        RGBA::new(self.r.as_u8(), self.g.as_u8(), self.b.as_u8(), 255)
+        self.fade(percent(100))
     }
 
     /// The algorithm for converting from rgb to hsl format, which determines
@@ -352,9 +352,9 @@ impl Color for RGB {
         // is no saturation or hue, and we can use any value to determine luminosity.
         if r == g && g == b {
             return HSL {
-                h: Angle::new(0),             // h
-                s: Ratio::from_percentage(0), // s
-                l: r,                         // l
+                h: degrees(0), // h
+                s: percent(0), // s
+                l: r,          // l
             };
         }
 
@@ -398,19 +398,17 @@ impl Color for RGB {
 
         // To calculate the hue, we look at which value (r, g, or b) is the max.
         // Based on that, we subtract the difference between the other two values,
-        // adding 2.0 or 4.0 to account for the degrees on the color wheel, and
+        // adding 120 or 240 deg to account for the degrees on the color wheel, and
         // then dividing that by the difference between the max and the min values.
         // Finally, we multiply the hue value by 60 to convert it to degrees on
         // the color wheel, accounting for negative hues as well.
-        let mut hue = if max == r {
-            (g - b) / (max - min)
+        let hue = if max == r {
+            60.0 * (g - b) / (max - min)
         } else if max == g {
-            2.0 + (b - r) / (max - min)
+            120.0 + 60.0 * (b - r) / (max - min)
         } else {
-            4.0 + (r - g) / (max - min)
+            240.0 + 60.0 * (r - g) / (max - min)
         };
-
-        hue *= 60.0;
 
         HSL {
             h: degrees(hue.round() as i16),
@@ -420,37 +418,36 @@ impl Color for RGB {
     }
 
     fn to_hsla(self) -> HSLA {
-        let HSL { h, s, l } = self.to_hsl();
-
-        HSLA::new(h.degrees(), s.as_percentage(), l.as_percentage(), 255)
+        self.to_rgba().to_hsla()
     }
 
-    fn saturate(self, amount: u8) -> Self {
+    fn saturate(self, amount: Ratio) -> Self {
         self.to_hsl().saturate(amount).to_rgb()
     }
 
-    fn desaturate(self, amount: u8) -> Self {
+    fn desaturate(self, amount: Ratio) -> Self {
         self.to_hsl().desaturate(amount).to_rgb()
     }
 
-    fn lighten(self, amount: u8) -> Self {
+    fn lighten(self, amount: Ratio) -> Self {
         self.to_hsl().lighten(amount).to_rgb()
     }
 
-    fn darken(self, amount: u8) -> Self {
+    fn darken(self, amount: Ratio) -> Self {
         self.to_hsl().darken(amount).to_rgb()
     }
 
-    fn fadein(self, _amount: u8) -> Self {
+    fn fadein(self, _amount: Ratio) -> Self {
         self
     }
 
-    fn fadeout(self, _amount: u8) -> Self {
+    fn fadeout(self, _amount: Ratio) -> Self {
         self
     }
 
-    fn fade(self, amount: u8) -> RGBA {
-        RGBA::new(self.r.as_u8(), self.g.as_u8(), self.b.as_u8(), amount)
+    fn fade(self, amount: Ratio) -> RGBA {
+        let RGB { r, g, b } = self;
+        RGBA { r, g, b, a: amount }
     }
 
     fn spin(self, amount: Angle) -> Self {
@@ -538,7 +535,8 @@ impl Color for RGBA {
     }
 
     fn to_rgb(self) -> RGB {
-        RGB::new(self.r.as_u8(), self.g.as_u8(), self.b.as_u8())
+        let RGBA { r, g, b, .. } = self;
+        RGB { r, g, b }
     }
 
     fn to_rgba(self) -> RGBA {
@@ -551,61 +549,36 @@ impl Color for RGBA {
 
     fn to_hsla(self) -> HSLA {
         let HSL { h, s, l } = self.to_hsl();
-        HSLA::new(
-            h.degrees(),
-            s.as_percentage(),
-            l.as_percentage(),
-            self.a.as_u8(),
-        )
+        HSLA { h, s, l, a: self.a }
     }
 
-    fn saturate(self, amount: u8) -> Self {
+    fn saturate(self, amount: Ratio) -> Self {
         self.to_hsla().saturate(amount).to_rgba()
     }
 
-    fn desaturate(self, amount: u8) -> Self {
+    fn desaturate(self, amount: Ratio) -> Self {
         self.to_hsla().desaturate(amount).to_rgba()
     }
 
-    fn lighten(self, amount: u8) -> Self {
+    fn lighten(self, amount: Ratio) -> Self {
         self.to_hsla().lighten(amount).to_rgba()
     }
 
-    fn darken(self, amount: u8) -> Self {
+    fn darken(self, amount: Ratio) -> Self {
         self.to_hsla().darken(amount).to_rgba()
     }
 
-    fn fadein(self, amount: u8) -> Self {
-        let RGBA { r, g, b, a } = self;
-
-        RGBA {
-            r,
-            g,
-            b,
-            a: a + Ratio::from_u8(amount),
-        }
+    fn fadein(self, amount: Ratio) -> Self {
+        self.fade(self.a + amount)
     }
 
-    fn fadeout(self, amount: u8) -> Self {
-        let RGBA { r, g, b, a } = self;
-
-        RGBA {
-            r,
-            g,
-            b,
-            a: a - Ratio::from_u8(amount),
-        }
+    fn fadeout(self, amount: Ratio) -> Self {
+        self.fade(self.a - amount)
     }
 
-    fn fade(self, amount: u8) -> Self {
-        let RGBA { r, g, b, a: _ } = self;
-
-        RGBA {
-            r,
-            g,
-            b,
-            a: Ratio::from_u8(amount),
-        }
+    fn fade(self, amount: Ratio) -> Self {
+        let RGBA { r, g, b, .. } = self;
+        RGBA { r, g, b, a: amount }
     }
 
     fn spin(self, amount: Angle) -> Self {
@@ -663,11 +636,11 @@ impl Color for RGBA {
     }
 
     fn tint(self, weight: Ratio) -> Self {
-        self.mix(RGBA::new(255, 255, 255, 255), weight)
+        self.mix(RGB::new(255, 255, 255), weight)
     }
 
     fn shade(self, weight: Ratio) -> Self {
-        self.mix(RGBA::new(0, 0, 0, 255), weight)
+        self.mix(RGB::new(0, 0, 0), weight)
     }
 
     fn greyscale(self) -> Self {
@@ -774,9 +747,7 @@ impl Color for HSL {
     }
 
     fn to_rgba(self) -> RGBA {
-        let RGB { r, g, b } = self.to_rgb();
-
-        RGBA::new(r.as_u8(), g.as_u8(), b.as_u8(), 255)
+        self.to_hsla().to_rgba()
     }
 
     fn to_hsl(self) -> HSL {
@@ -784,71 +755,60 @@ impl Color for HSL {
     }
 
     fn to_hsla(self) -> HSLA {
-        HSLA::new(
-            self.h.degrees(),
-            self.s.as_percentage(),
-            self.l.as_percentage(),
-            255,
-        )
+        self.fade(percent(100))
     }
 
-    fn saturate(self, amount: u8) -> Self {
+    fn saturate(self, amount: Ratio) -> Self {
         let HSL { h, s, l } = self;
 
         HSL {
             h,
-            s: s + Ratio::from_percentage(amount),
+            s: s + amount,
             l,
         }
     }
 
-    fn desaturate(self, amount: u8) -> Self {
+    fn desaturate(self, amount: Ratio) -> Self {
         let HSL { h, s, l } = self;
 
         HSL {
             h,
-            s: s - Ratio::from_percentage(amount),
+            s: s - amount,
             l,
         }
     }
 
-    fn lighten(self, amount: u8) -> Self {
+    fn lighten(self, amount: Ratio) -> Self {
         let HSL { h, s, l } = self;
 
         HSL {
             h,
             s,
-            l: l + Ratio::from_percentage(amount),
+            l: l + amount,
         }
     }
 
-    fn darken(self, amount: u8) -> Self {
+    fn darken(self, amount: Ratio) -> Self {
         let HSL { h, s, l } = self;
 
         HSL {
             h,
             s,
-            l: l - Ratio::from_percentage(amount),
+            l: l - amount,
         }
     }
 
-    fn fadein(self, _amount: u8) -> Self {
+    fn fadein(self, _amount: Ratio) -> Self {
         self
     }
 
-    fn fadeout(self, _amount: u8) -> Self {
+    fn fadeout(self, _amount: Ratio) -> Self {
         self
     }
 
-    fn fade(self, amount: u8) -> Self::Alpha {
+    fn fade(self, amount: Ratio) -> Self::Alpha {
         let HSL { h, s, l } = self;
-
-        HSLA {
-            h,
-            s,
-            l,
-            a: Ratio::from_u8(amount),
-        }
+        HSLA { h, s, l, a: amount }
     }
 
     fn spin(self, amount: Angle) -> Self {
@@ -878,7 +838,7 @@ impl Color for HSL {
 
         HSL {
             h,
-            s: Ratio::from_percentage(0),
+            s: percent(0),
             l,
         }
     }
@@ -949,11 +909,11 @@ impl HSLA {
     ///
     /// assert_eq!(light_salmon, HSLA { h: Angle::new(6), s: Ratio::from_percentage(93), l: Ratio::from_percentage(71), a: Ratio::from_percentage(50) });
     /// ```
-    pub fn new(h: u16, s: u8, l: u8, a: u8) -> HSLA {
+    pub fn new(h: i16, s: u8, l: u8, a: u8) -> HSLA {
         HSLA {
-            h: Angle::new(h),
-            s: Ratio::from_percentage(s),
-            l: Ratio::from_percentage(l),
+            h: degrees(h),
+            s: percent(s),
+            l: percent(l),
             a: Ratio::from_u8(a),
         }
     }
@@ -984,81 +944,61 @@ impl Color for HSLA {
         self
     }
 
-    fn saturate(self, amount: u8) -> Self {
+    fn saturate(self, amount: Ratio) -> Self {
         let HSLA { h, s, l, a } = self;
 
         HSLA {
             h,
-            s: s + Ratio::from_percentage(amount),
+            s: s + amount,
             l,
             a,
         }
     }
 
-    fn desaturate(self, amount: u8) -> Self {
+    fn desaturate(self, amount: Ratio) -> Self {
         let HSLA { h, s, l, a } = self;
 
         HSLA {
             h,
-            s: s - Ratio::from_percentage(amount),
+            s: s - amount,
             l,
             a,
         }
     }
 
-    fn lighten(self, amount: u8) -> Self {
+    fn lighten(self, amount: Ratio) -> Self {
         let HSLA { h, s, l, a } = self;
 
         HSLA {
             h,
             s,
-            l: l + Ratio::from_percentage(amount),
+            l: l + amount,
             a,
         }
     }
 
-    fn darken(self, amount: u8) -> Self {
+    fn darken(self, amount: Ratio) -> Self {
         let HSLA { h, s, l, a } = self;
 
         HSLA {
             h,
             s,
-            l: l - Ratio::from_percentage(amount),
+            l: l - amount,
             a,
         }
     }
 
-    fn fadein(self, amount: u8) -> Self {
-        let HSLA { h, s, l, a } = self;
-
-        HSLA {
-            h,
-            s,
-            l,
-            a: a + Ratio::from_u8(amount),
-        }
+    fn fadein(self, amount: Ratio) -> Self {
+        self.fade(self.a + amount)
     }
 
-    fn fadeout(self, amount: u8) -> Self {
-        let HSLA { h, s, l, a } = self;
-
-        HSLA {
-            h,
-            s,
-            l,
-            a: a - Ratio::from_u8(amount),
-        }
+    fn fadeout(self, amount: Ratio) -> Self {
+        self.fade(self.a - amount)
     }
 
-    fn fade(self, amount: u8) -> Self::Alpha {
+    fn fade(self, amount: Ratio) -> Self::Alpha {
         let HSLA { h, s, l, .. } = self;
-
-        HSLA {
-            h,
-            s,
-            l,
-            a: Ratio::from_u8(amount),
-        }
+        HSLA { h, s, l, a: amount }
     }
 
     fn spin(self, amount: Angle) -> Self {
@@ -1415,113 +1355,141 @@ mod css_color_tests {
         conversion_test!(chartreuse, rgb(127, 255, 0), hsl(90, 100, 50));
     }
 
+    use self::conversions::ApproximatelyEq;
+
     #[test]
     fn can_saturate() {
-        use self::conversions::ApproximatelyEq;
-
-        assert_eq!(HSL::new(9, 35, 50).saturate(20), HSL::new(9, 55, 50));
-        assert_eq!(
-            HSLA::new(9, 35, 50, 255).saturate(20),
+        assert_approximately_eq!(
+            HSL::new(9, 35, 50).saturate(percent(20)),
+            HSL::new(9, 55, 50)
+        );
+        assert_approximately_eq!(
+            HSLA::new(9, 35, 50, 255).saturate(percent(20)),
             HSLA::new(9, 55, 50, 255)
         );
 
-        assert_approximately_eq!(RGB::new(172, 96, 83).saturate(20), RGB::new(197, 78, 57));
         assert_approximately_eq!(
-            RGBA::new(172, 96, 83, 255).saturate(20),
+            RGB::new(172, 96, 83).saturate(percent(20)),
+            RGB::new(197, 78, 57)
+        );
+        assert_approximately_eq!(
+            RGBA::new(172, 96, 83, 255).saturate(percent(20)),
             RGBA::new(197, 78, 57, 255)
         );
     }
 
     #[test]
     fn can_desaturate() {
-        use self::conversions::ApproximatelyEq;
-
-        assert_eq!(HSL::new(9, 55, 50).desaturate(20), HSL::new(9, 35, 50));
-        assert_eq!(
-            HSLA::new(9, 55, 50, 255).desaturate(20),
+        assert_approximately_eq!(
+            HSL::new(9, 55, 50).desaturate(percent(20)),
+            HSL::new(9, 35, 50)
+        );
+        assert_approximately_eq!(
+            HSLA::new(9, 55, 50, 255).desaturate(percent(20)),
             HSLA::new(9, 35, 50, 255)
         );
-        assert_approximately_eq!(RGB::new(197, 78, 57).desaturate(20), RGB::new(172, 96, 83));
         assert_approximately_eq!(
-            RGBA::new(197, 78, 57, 255).desaturate(20),
+            RGB::new(197, 78, 57).desaturate(percent(20)),
+            RGB::new(172, 96, 83)
+        );
+        assert_approximately_eq!(
+            RGBA::new(197, 78, 57, 255).desaturate(percent(20)),
             RGBA::new(172, 96, 83, 255)
         );
     }
 
     #[test]
     fn can_lighten() {
-        use self::conversions::ApproximatelyEq;
-
-        assert_eq!(HSL::new(9, 35, 50).lighten(20), HSL::new(9, 35, 70));
-        assert_eq!(
-            HSLA::new(9, 35, 50, 255).lighten(20),
+        assert_approximately_eq!(
+            HSL::new(9, 35, 50).lighten(percent(20)),
+            HSL::new(9, 35, 70)
+        );
+        assert_approximately_eq!(
+            HSLA::new(9, 35, 50, 255).lighten(percent(20)),
             HSLA::new(9, 35, 70, 255)
         );
-        assert_approximately_eq!(RGB::new(172, 96, 83).lighten(20), RGB::new(205, 160, 152));
         assert_approximately_eq!(
-            RGBA::new(172, 96, 83, 255).lighten(20),
+            RGB::new(172, 96, 83).lighten(percent(20)),
+            RGB::new(205, 160, 152)
+        );
+        assert_approximately_eq!(
+            RGBA::new(172, 96, 83, 255).lighten(percent(20)),
             RGBA::new(205, 160, 152, 255)
         );
     }
 
     #[test]
     fn can_darken() {
-        use self::conversions::ApproximatelyEq;
-
-        assert_eq!(HSL::new(9, 35, 70).darken(20), HSL::new(9, 35, 50));
-        assert_eq!(
-            HSLA::new(9, 35, 70, 255).darken(20),
+        assert_approximately_eq!(HSL::new(9, 35, 70).darken(percent(20)), HSL::new(9, 35, 50));
+        assert_approximately_eq!(
+            HSLA::new(9, 35, 70, 255).darken(percent(20)),
             HSLA::new(9, 35, 50, 255)
         );
-        assert_approximately_eq!(RGB::new(205, 160, 152).darken(20), RGB::new(172, 96, 83));
         assert_approximately_eq!(
-            RGBA::new(205, 160, 152, 255).darken(20),
+            RGB::new(205, 160, 152).darken(percent(20)),
+            RGB::new(172, 96, 83)
+        );
+        assert_approximately_eq!(
+            RGBA::new(205, 160, 152, 255).darken(percent(20)),
             RGBA::new(172, 96, 83, 255)
         );
     }
 
     #[test]
     fn can_fadein() {
-        assert_eq!(HSL::new(9, 35, 50).fadein(20), HSL::new(9, 35, 50));
-        assert_eq!(
-            HSLA::new(9, 35, 50, 128).fadein(20),
-            HSLA::new(9, 35, 50, 148)
+        assert_approximately_eq!(HSL::new(9, 35, 50).fadein(percent(25)), HSL::new(9, 35, 50));
+        assert_approximately_eq!(
+            HSLA::new(9, 35, 50, 128).fadein(percent(25)),
+            HSLA::new(9, 35, 50, 192)
         );
-        assert_eq!(RGB::new(172, 96, 83).fadein(20), RGB::new(172, 96, 83));
-        assert_eq!(
-            RGBA::new(172, 96, 83, 128).fadein(20),
-            RGBA::new(172, 96, 83, 148)
+        assert_approximately_eq!(
+            RGB::new(172, 96, 83).fadein(percent(25)),
+            RGB::new(172, 96, 83)
+        );
+        assert_approximately_eq!(
+            RGBA::new(172, 96, 83, 128).fadein(percent(25)),
+            RGBA::new(172, 96, 83, 192)
         );
     }
 
     #[test]
     fn can_fadeout() {
-        assert_eq!(HSL::new(9, 35, 50).fadeout(20), HSL::new(9, 35, 50));
-        assert_eq!(RGB::new(172, 96, 83).fadeout(20), RGB::new(172, 96, 83));
-        assert_eq!(
-            HSLA::new(9, 35, 50, 148).fadeout(20),
-            HSLA::new(9, 35, 50, 128)
+        assert_approximately_eq!(
+            HSL::new(9, 35, 50).fadeout(percent(25)),
+            HSL::new(9, 35, 50)
         );
-        assert_eq!(
-            RGBA::new(172, 96, 83, 148).fadeout(20),
-            RGBA::new(172, 96, 83, 128)
+        assert_approximately_eq!(
+            RGB::new(172, 96, 83).fadeout(percent(25)),
+            RGB::new(172, 96, 83)
+        );
+        assert_approximately_eq!(
+            HSLA::new(9, 35, 50, 148).fadeout(percent(25)),
+            HSLA::new(9, 35, 50, 84)
+        );
+        assert_approximately_eq!(
+            RGBA::new(172, 96, 83, 148).fadeout(percent(25)),
+            RGBA::new(172, 96, 83, 84)
         );
     }
 
     #[test]
     fn can_fade() {
-        let faded_color = RGBA::new(23, 98, 119, 50);
+        let faded_color = RGBA::new(23, 98, 119, 128);
 
-        assert_eq!(RGB::new(23, 98, 119).fade(50), faded_color);
-        assert_eq!(RGBA::new(23, 98, 119, 255).fade(50), faded_color);
-        assert_eq!(HSL::new(193, 67, 28).fade(50), faded_color.to_hsla());
-        assert_eq!(HSLA::new(193, 67, 28, 255).fade(50), faded_color.to_hsla());
+        assert_approximately_eq!(RGB::new(23, 98, 119).fade(percent(50)), faded_color);
+        assert_approximately_eq!(RGBA::new(23, 98, 119, 255).fade(percent(50)), faded_color);
+        assert_approximately_eq!(
+            HSL::new(193, 67, 28).fade(percent(50)),
+            faded_color.to_hsla()
+        );
+        assert_approximately_eq!(
+            HSLA::new(193, 67, 28, 255).fade(percent(50)),
+            faded_color.to_hsla()
+        );
     }
 
     #[test]
     fn can_spin_forward() {
-        use self::conversions::ApproximatelyEq;
-
         assert_approximately_eq!(
             RGB::new(75, 207, 23).spin(degrees(100)),
             RGB::new(23, 136, 207)
@@ -1539,8 +1507,6 @@ mod css_color_tests {
 
     #[test]
     fn can_spin_backwards() {
-        use self::conversions::ApproximatelyEq;
-
         assert_approximately_eq!(
             RGB::new(75, 207, 23).spin(degrees(-100)),
             RGB::new(207, 32, 23)
@@ -1561,8 +1527,6 @@ mod css_color_tests {
 
     #[test]
     fn can_mix() {
-        use self::conversions::ApproximatelyEq;
-
         let brown_rgba = RGBA::new(50, 50, 0, 255);
         let brown_hsla = HSLA::new(60, 100, 10, 255);
 
@@ -1586,8 +1550,6 @@ mod css_color_tests {
 
     #[test]
     fn can_mix_single_color() {
-        use self::conversions::ApproximatelyEq;
-
         let rgba_red = RGBA::new(100, 0, 0, 255);
         let rgba_green = RGBA::new(0, 100, 0, 127);
         let hsla_red = HSLA::new(120, 100, 20, 255);
@@ -1608,8 +1570,6 @@ mod css_color_tests {
 
     #[test]
     fn can_mix_with_alpha() {
-        use self::conversions::ApproximatelyEq;
-
         let red_rgba = RGBA::new(100, 0, 0, 255);
         let green_rgba = RGBA::new(0, 100, 0, 127);
         let brown_rgba = RGBA::new(75, 25, 0, 191);
@@ -1625,9 +1585,7 @@ mod css_color_tests {
 
     #[test]
     fn can_tint() {
-        use self::conversions::ApproximatelyEq;
-
-        assert_eq!(
+        assert_approximately_eq!(
             RGBA::new(0, 0, 255, 128).tint(percent(50)),
             RGBA::new(191, 191, 255, 191)
         );
@@ -1644,9 +1602,7 @@ mod css_color_tests {
 
     #[test]
     fn can_shade() {
-        use self::conversions::ApproximatelyEq;
-
-        assert_eq!(
+        assert_approximately_eq!(
             RGBA::new(0, 0, 255, 128).shade(percent(50)),
             RGBA::new(0, 0, 64, 191)
         );
@@ -1660,13 +1616,13 @@ mod css_color_tests {
 
     #[test]
     fn can_greyscale() {
-        assert_eq!(RGB::new(128, 242, 13).greyscale(), RGB::new(128, 128, 128));
-        assert_eq!(
+        assert_approximately_eq!(RGB::new(128, 242, 13).greyscale(), RGB::new(128, 128, 128));
+        assert_approximately_eq!(
             RGBA::new(128, 242, 13, 255).greyscale(),
             RGBA::new(128, 128, 128, 255)
         );
-        assert_eq!(HSL::new(90, 90, 50).greyscale(), HSL::new(90, 0, 50));
-        assert_eq!(
+        assert_approximately_eq!(HSL::new(90, 90, 50).greyscale(), HSL::new(90, 0, 50));
+        assert_approximately_eq!(
             HSLA::new(90, 90, 50, 255).greyscale(),
             HSLA::new(90, 0, 50, 255)
         );
