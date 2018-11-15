@@ -205,18 +205,15 @@ pub trait Color {
     /// use css_colors::{Color, RGB, HSL, degrees};
     ///
     /// let red = HSL::new(10, 90, 50);
-    /// let golden = RGB::new(243, 166, 13);
     /// let pink = RGB::new(243, 13, 90);
     ///
-    /// assert_eq!(red.spin(degrees(30)), golden);
-    /// assert_eq!(red.spin(degrees(-30)), pink);
+    /// assert_eq!(red.spin(degrees(30)), HSL::new(40, 90, 50));
+    /// assert_eq!(pink.spin(degrees(-30)), RGB::new(243, 13, 205));
     /// ```
-    fn spin(self, amount: i16) -> RGB;
+    fn spin(self, amount: Angle) -> Self;
 
-    /// Mixes two colors (`self` and any other `RGBA` color) together in variable proportion.
+    /// Mixes two colors (`self` and any other `Color`) together in variable proportion.
     /// Takes opacity into account in the calculations.
-    /// Optionally takes a percentage balance point between the two colors, and defaults to 50%.
-    /// Returns the appropriate `RGBA` representation of the color once it has been mixed.
     /// For more, see Less' [Color Operations](http://lesscss.org/functions/#color-operations-mix).
     ///
     /// # Examples
@@ -230,43 +227,39 @@ pub trait Color {
     /// assert_eq!(red.mix(navy, percent(50)), HSLA::new(347, 65, 29, 255));
     /// assert_eq!(golden.mix(navy, percent(25)), RGBA::new(61, 42, 63, 255));
     /// ```
-    fn mix<T: Color>(self, other: T, weight: u8) -> Self::Alpha;
+    fn mix<T: Color>(self, other: T, weight: Ratio) -> Self::Alpha;
 
     /// Mixes `self` with white in variable proportion.
     /// Equivalent to calling `mix()` with `white` (`rgb(255, 255, 255)`).
-    /// Optionally takes a percentage balance point between `self` and `white`, defaults to 50%.
-    /// Returns the appropriate `RGBA` representation of the color once it has been mixed.
     /// For more, see Less' [Color Operations](http://lesscss.org/functions/#color-operations-tint).
     ///
     /// # Examples
     /// ```
-    /// use css_colors::{Color, RGB, RGBA, HSL};
+    /// use css_colors::{Color, RGB, RGBA, HSL, percent};
     ///
     /// let red = HSL::new(10, 90, 50);
     /// let golden = RGB::new(243, 166, 13);
     ///
-    /// assert_eq!(red.tint(50), RGBA::new(249, 153, 134, 255));
-    /// assert_eq!(golden.tint(25), RGBA::new(252, 233, 194, 255));
+    /// assert_eq!(red.tint(percent(10)), HSL::new(10, 92, 95));
+    /// assert_eq!(golden.tint(percent(25)), RGB::new(252, 233, 194));
     /// ```
-    fn tint(self, weight: u8) -> RGBA;
+    fn tint(self, weight: Ratio) -> Self;
 
     /// Mixes `self` with white in variable proportion.
     /// Equivalent to calling `mix()` with `black` (`rgb(0, 0, 0)`).
-    /// Optionally takes a percentage balance point between `self` and `black`, defaults to 50%.
-    /// Returns the appropriate `RGBA` representation of the color once it has been mixed.
     /// For more, see Less' [Color Operations](http://lesscss.org/functions/#color-operations-shade).
     ///
     /// # Examples
     /// ```
-    /// use css_colors::{Color, RGB, RGBA, HSL};
+    /// use css_colors::{Color, RGB, RGBA, HSL, percent};
     ///
     /// let red = HSL::new(10, 90, 50);
     /// let golden = RGB::new(243, 166, 13);
     ///
-    /// assert_eq!(red.shade(50), RGBA::new(122, 26, 7, 255));
-    /// assert_eq!(golden.shade(25), RGBA::new(61, 42, 3, 255));
+    /// assert_eq!(red.shade(percent(10)), HSL::new(10, 92, 5));
+    /// assert_eq!(golden.shade(percent(25)), RGB::new(61, 42, 3));
     /// ```
-    fn shade(self, weight: u8) -> RGBA;
+    fn shade(self, weight: Ratio) -> Self;
 
     /// Remove all saturation from `self` in the HSL color space.
     /// Equivalent to calling `desaturate(0)` on a color.
@@ -419,13 +412,8 @@ impl Color for RGB {
 
         hue *= 60.0;
 
-        // If hue is negative, add 360 to make it it positive.
-        if hue <= 0.0 {
-            hue += 360.0;
-        }
-
         HSL {
-            h: Angle::new(hue.round() as u16),
+            h: degrees(hue.round() as i16),
             s: Ratio::from_f32(saturation),
             l: Ratio::from_f32(luminosity),
         }
@@ -465,20 +453,20 @@ impl Color for RGB {
         RGBA::new(self.r.as_u8(), self.g.as_u8(), self.b.as_u8(), amount)
     }
 
-    fn spin(self, amount: i16) -> Self {
+    fn spin(self, amount: Angle) -> Self {
         self.to_hsl().spin(amount).to_rgb()
     }
 
-    fn mix<T: Color>(self, other: T, weight: u8) -> RGBA {
+    fn mix<T: Color>(self, other: T, weight: Ratio) -> RGBA {
         self.to_rgba().mix(other, weight)
     }
 
-    fn tint(self, _weight: u8) -> RGBA {
-        self.to_rgba().tint(_weight)
+    fn tint(self, _weight: Ratio) -> Self {
+        self.to_rgba().tint(_weight).to_rgb()
     }
 
-    fn shade(self, _weight: u8) -> RGBA {
-        self.to_rgba().shade(_weight)
+    fn shade(self, _weight: Ratio) -> Self {
+        self.to_rgba().shade(_weight).to_rgb()
     }
 
     fn greyscale(self) -> Self {
@@ -620,15 +608,15 @@ impl Color for RGBA {
         }
     }
 
-    fn spin(self, amount: i16) -> RGB {
-        self.to_hsl().spin(amount).to_rgb()
+    fn spin(self, amount: Angle) -> Self {
+        self.to_hsl().spin(amount).to_rgba()
     }
 
     // This algorithm takes into account both the user-provided weight (w) and
     // the difference between the alpha values of the two colors (a) to determine
     // the weighted average of the two colors.
     // Taken from Sass's implementation (http://sass-lang.com/documentation/Sass/Script/Functions.html#mix-instance_method)
-    fn mix<T: Color>(self, other: T, weight: u8) -> Self {
+    fn mix<T: Color>(self, other: T, weight: Ratio) -> Self {
         let RGBA {
             r: r_lhs,
             g: g_lhs,
@@ -643,10 +631,8 @@ impl Color for RGBA {
             a: a_rhs,
         } = other.to_rgba();
 
-        let ratio_weight = Ratio::from_percentage(weight);
-
         // Convert weight into a decimal, and then scale it so that it falls between a range of [-1, 1].
-        let w = (ratio_weight.as_f32() * 2.0) - 1.0;
+        let w = (weight.as_f32() * 2.0) - 1.0;
 
         // Find the difference between the left and right side's alphas (somewhere between [-1, 1]).
         let a = a_lhs.as_f32() - a_rhs.as_f32();
@@ -665,7 +651,7 @@ impl Color for RGBA {
         let rgb_weight_lhs = Ratio::from_f32(rgb_weight);
         let rgb_weight_rhs = Ratio::from_f32(1.0) - rgb_weight_lhs;
 
-        let alpha_weight_lhs = ratio_weight;
+        let alpha_weight_lhs = weight;
         let alpha_weight_rhs = Ratio::from_f32(1.0) - alpha_weight_lhs;
 
         RGBA {
@@ -676,11 +662,11 @@ impl Color for RGBA {
         }
     }
 
-    fn tint(self, _weight: u8) -> RGBA {
+    fn tint(self, _weight: Ratio) -> Self {
         self.mix(RGBA::new(255, 255, 255, 255), _weight)
     }
 
-    fn shade(self, _weight: u8) -> RGBA {
+    fn shade(self, _weight: Ratio) -> Self {
         self.mix(RGBA::new(0, 0, 0, 255), _weight)
     }
 
@@ -865,30 +851,26 @@ impl Color for HSL {
         }
     }
 
-    fn spin(self, amount: i16) -> RGB {
+    fn spin(self, amount: Angle) -> Self {
         let HSL { h, s, l } = self;
 
-        assert!(amount < 360, "Invalid spin amount");
-
-        let new_hue = if amount.is_negative() {
-            h - Angle::new((amount * -1) as u16)
-        } else {
-            h + Angle::new(amount as u16)
-        };
-
-        HSL { h: new_hue, s, l }.to_rgb()
+        HSL {
+            h: h + amount,
+            s,
+            l,
+        }
     }
 
-    fn mix<T: Color>(self, other: T, weight: u8) -> Self::Alpha {
+    fn mix<T: Color>(self, other: T, weight: Ratio) -> Self::Alpha {
         self.to_hsla().mix(other, weight)
     }
 
-    fn tint(self, _weight: u8) -> RGBA {
-        self.to_rgba().tint(_weight)
+    fn tint(self, _weight: Ratio) -> Self {
+        self.to_rgba().tint(_weight).to_hsl()
     }
 
-    fn shade(self, _weight: u8) -> RGBA {
-        self.to_rgba().shade(_weight)
+    fn shade(self, _weight: Ratio) -> Self {
+        self.to_rgba().shade(_weight).to_hsl()
     }
 
     fn greyscale(self) -> Self {
@@ -1079,20 +1061,20 @@ impl Color for HSLA {
         }
     }
 
-    fn spin(self, amount: i16) -> RGB {
-        self.to_hsl().spin(amount).to_rgb()
+    fn spin(self, amount: Angle) -> Self {
+        self.to_hsl().spin(amount).to_hsla()
     }
 
-    fn mix<T: Color>(self, other: T, weight: u8) -> Self::Alpha {
+    fn mix<T: Color>(self, other: T, weight: Ratio) -> Self::Alpha {
         self.to_rgba().mix(other, weight).to_hsla()
     }
 
-    fn tint(self, _weight: u8) -> RGBA {
-        self.to_rgba().tint(_weight)
+    fn tint(self, _weight: Ratio) -> Self {
+        self.to_rgba().tint(_weight).to_hsla()
     }
 
-    fn shade(self, _weight: u8) -> RGBA {
-        self.to_rgba().shade(_weight)
+    fn shade(self, _weight: Ratio) -> Self {
+        self.to_rgba().shade(_weight).to_hsla()
     }
 
     fn greyscale(self) -> Self {
@@ -1102,6 +1084,8 @@ impl Color for HSLA {
 
 #[cfg(test)]
 mod css_color_tests {
+    use angle::*;
+    use ratio::*;
     use {Angle, Color, Ratio, HSL, HSLA, RGB, RGBA};
 
     #[test]
@@ -1538,62 +1522,105 @@ mod css_color_tests {
     fn can_spin_forward() {
         use self::conversions::ApproximatelyEq;
 
-        assert_approximately_eq!(RGB::new(75, 207, 23).spin(100), RGB::new(23, 136, 207));
         assert_approximately_eq!(
-            RGBA::new(75, 207, 23, 255).spin(100),
+            RGB::new(75, 207, 23).spin(degrees(100)),
             RGB::new(23, 136, 207)
         );
-        assert_approximately_eq!(HSL::new(10, 90, 50).spin(30), RGB::new(242, 166, 13));
-        assert_approximately_eq!(HSLA::new(10, 90, 50, 255).spin(30), RGB::new(242, 166, 13));
+        assert_approximately_eq!(
+            RGBA::new(75, 207, 23, 255).spin(degrees(100)),
+            RGBA::new(23, 136, 207, 255)
+        );
+        assert_approximately_eq!(HSL::new(10, 90, 50).spin(degrees(30)), HSL::new(40, 90, 50));
+        assert_approximately_eq!(
+            HSLA::new(10, 90, 50, 255).spin(degrees(30)),
+            HSLA::new(40, 90, 50, 255)
+        );
     }
 
     #[test]
     fn can_spin_backwards() {
         use self::conversions::ApproximatelyEq;
 
-        assert_approximately_eq!(RGB::new(75, 207, 23).spin(-100), RGB::new(207, 32, 23));
         assert_approximately_eq!(
-            RGBA::new(75, 207, 23, 255).spin(-100),
+            RGB::new(75, 207, 23).spin(degrees(-100)),
             RGB::new(207, 32, 23)
         );
-        assert_approximately_eq!(HSL::new(10, 90, 50).spin(-30), RGB::new(242, 13, 89));
-        assert_approximately_eq!(HSLA::new(10, 90, 50, 255).spin(-30), RGB::new(242, 13, 89));
+        assert_approximately_eq!(
+            RGBA::new(75, 207, 23, 255).spin(degrees(-100)),
+            RGBA::new(207, 32, 23, 255)
+        );
+        assert_approximately_eq!(
+            HSL::new(10, 90, 50).spin(degrees(-30)),
+            HSL::new(340, 90, 50)
+        );
+        assert_approximately_eq!(
+            HSLA::new(10, 90, 50, 255).spin(degrees(-30)),
+            HSLA::new(340, 90, 50, 255)
+        );
     }
 
     #[test]
     fn can_mix() {
         use self::conversions::ApproximatelyEq;
 
-        let red = RGBA::new(100, 0, 0, 255);
-        let green = RGBA::new(0, 100, 0, 255);
-        let brown = RGBA::new(50, 50, 0, 255);
+        let brown_rgba = RGBA::new(50, 50, 0, 255);
+        let brown_hsla = HSLA::new(60, 100, 10, 255);
 
-        assert_approximately_eq!(red.mix(green, 50), brown);
+        assert_approximately_eq!(
+            RGBA::new(100, 0, 0, 255).mix(RGBA::new(0, 100, 0, 255), percent(50)),
+            brown_rgba
+        );
+        assert_approximately_eq!(
+            RGB::new(100, 0, 0).mix(RGB::new(0, 100, 0), percent(50)),
+            brown_rgba
+        );
+        assert_approximately_eq!(
+            HSL::new(0, 100, 20).mix(HSL::new(120, 100, 20), percent(50)),
+            brown_hsla
+        );
+        assert_approximately_eq!(
+            HSLA::new(0, 100, 20, 255).mix(HSLA::new(120, 100, 20, 255), percent(50)),
+            brown_hsla
+        );
     }
 
     #[test]
     fn can_mix_single_color() {
         use self::conversions::ApproximatelyEq;
 
-        let red = RGBA::new(100, 0, 0, 255);
-        let green = RGBA::new(0, 100, 0, 127);
+        let rgba_red = RGBA::new(100, 0, 0, 255);
+        let rgba_green = RGBA::new(0, 100, 0, 127);
+        let hsla_red = HSLA::new(120, 100, 20, 255);
+        let hsla_green = HSLA::new(0, 100, 20, 127);
 
-        assert_approximately_eq!(red.mix(green, 100), red);
-        assert_approximately_eq!(red.mix(green, 0), green);
-        assert_approximately_eq!(green.mix(red, 100), green);
-        assert_approximately_eq!(green.mix(red, 0), red);
+        assert_approximately_eq!(rgba_red.mix(rgba_green, percent(100)), rgba_red);
+        assert_approximately_eq!(rgba_red.mix(rgba_green, percent(0)), rgba_green);
+        assert_approximately_eq!(rgba_green.mix(rgba_red, percent(100)), rgba_green);
+        assert_approximately_eq!(rgba_green.mix(rgba_red, percent(0)), rgba_red);
+        assert_approximately_eq!(rgba_red.mix(rgba_green, percent(0)), rgba_green);
+
+        assert_approximately_eq!(hsla_red.mix(hsla_green, percent(100)), hsla_red);
+        assert_approximately_eq!(hsla_red.mix(hsla_green, percent(0)), hsla_green);
+        assert_approximately_eq!(hsla_green.mix(hsla_red, percent(100)), hsla_green);
+        assert_approximately_eq!(hsla_green.mix(hsla_red, percent(0)), hsla_red);
+        assert_approximately_eq!(hsla_red.mix(hsla_green, percent(0)), hsla_green);
     }
 
     #[test]
     fn can_mix_with_alpha() {
         use self::conversions::ApproximatelyEq;
 
-        let red = RGBA::new(100, 0, 0, 255);
-        let green = RGBA::new(0, 100, 0, 127);
-        let brown = RGBA::new(75, 25, 0, 191);
+        let red_rgba = RGBA::new(100, 0, 0, 255);
+        let green_rgba = RGBA::new(0, 100, 0, 127);
+        let brown_rgba = RGBA::new(75, 25, 0, 191);
+        let green_hsla = HSLA::new(120, 100, 20, 255);
+        let red_hsla = HSLA::new(0, 100, 20, 255);
+        let brown_hsla = HSLA::new(60, 100, 10, 255);
 
-        assert_approximately_eq!(red.mix(green, 50), brown);
-        assert_approximately_eq!(green.mix(red, 50), brown);
+        assert_approximately_eq!(red_rgba.mix(green_rgba, percent(50)), brown_rgba);
+        assert_approximately_eq!(green_rgba.mix(red_rgba, percent(50)), brown_rgba);
+        assert_approximately_eq!(red_hsla.mix(green_hsla, percent(50)), brown_hsla);
+        assert_approximately_eq!(green_hsla.mix(red_hsla, percent(50)), brown_hsla);
     }
 
     #[test]
@@ -1601,14 +1628,17 @@ mod css_color_tests {
         use self::conversions::ApproximatelyEq;
 
         assert_eq!(
-            RGBA::new(0, 0, 255, 128).tint(50),
+            RGBA::new(0, 0, 255, 128).tint(percent(50)),
             RGBA::new(191, 191, 255, 191)
         );
-        assert_approximately_eq!(RGB::new(0, 0, 255).tint(50), RGBA::new(128, 128, 255, 255));
-        assert_approximately_eq!(HSL::new(6, 93, 71).tint(50), RGBA::new(253, 191, 184, 255));
         assert_approximately_eq!(
-            HSLA::new(6, 93, 71, 128).tint(50),
-            RGBA::new(254, 223, 219, 191)
+            RGB::new(0, 0, 255).tint(percent(50)),
+            RGB::new(128, 128, 255)
+        );
+        assert_approximately_eq!(HSL::new(6, 93, 71).tint(percent(50)), HSL::new(6, 92, 85));
+        assert_approximately_eq!(
+            HSLA::new(6, 93, 71, 128).tint(percent(50)),
+            HSLA::new(6, 95, 93, 191)
         );
     }
 
@@ -1617,17 +1647,14 @@ mod css_color_tests {
         use self::conversions::ApproximatelyEq;
 
         assert_eq!(
-            RGBA::new(0, 0, 255, 128).shade(50),
+            RGBA::new(0, 0, 255, 128).shade(percent(50)),
             RGBA::new(0, 0, 64, 191)
         );
-
-        assert_approximately_eq!(RGB::new(0, 0, 255).shade(50), RGBA::new(0, 0, 128, 255));
-
-        assert_approximately_eq!(HSL::new(6, 93, 71).shade(50), RGBA::new(125, 63, 56, 255));
-
+        assert_approximately_eq!(RGB::new(0, 0, 255).shade(percent(50)), RGB::new(0, 0, 128));
+        assert_approximately_eq!(HSL::new(6, 93, 71).shade(percent(50)), HSL::new(6, 38, 36));
         assert_approximately_eq!(
-            HSLA::new(6, 93, 71, 128).shade(50),
-            RGBA::new(63, 32, 28, 191)
+            HSLA::new(6, 93, 71, 128).shade(percent(50)),
+            HSLA::new(7, 38, 18, 191)
         );
     }
 
