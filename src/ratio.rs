@@ -1,6 +1,17 @@
 use std::fmt;
 use std::ops;
 
+/// Construct an ratio from percentages. Values outside of the 0-100% range
+/// will cause a panic.
+///
+/// # Example
+/// ```
+/// use css_colors::{percent};
+///
+/// assert_eq!(percent(0).to_string(), "0%");
+/// assert_eq!(percent(25).to_string(), "25%");
+/// assert_eq!(percent(100).to_string(), "100%");
+/// ```
 pub fn percent(percentage: u8) -> Ratio {
     Ratio::from_percentage(percentage)
 }
