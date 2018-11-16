@@ -2,7 +2,7 @@
 
 [![Build Status](https://travis-ci.com/vaidehijoshi/css-colors.svg?branch=master)](https://travis-ci.com/vaidehijoshi/css-colors) [![css-colors](https://docs.rs/css-colors/badge.svg)](https://docs.rs/css-colors)
 
-A Rust parser and converter to transform CSS colors. 🎨
+A Rust converter to transform CSS colors. 🎨
 
 ## Installation
 
@@ -47,7 +47,7 @@ This crate allows you to perform operations that map to Less' [color operations 
 
 Represent colors as a valid CSS string:
 ```rust
-use css_colors::{Color, hsla, rgb};
+use css_colors::{Color, rgb, hsla};
 
 let salmon = rgb(250, 128, 114);
 let chartreuse = hsla(90, 100, 50, 1.0)
@@ -58,29 +58,29 @@ assert_eq!(chartreuse.to_css(), "hsla(90, 100%, 50%, 1.0)");
 
 Convert between different color model representations:
 ```rust
-use css_colors::{Color, hsl, rgb, rgba};
+use css_colors::{Color, rgb, rgba, hsl, hsla};
 
 let chartreuse = rgb(127, 255, 0);
 
 assert_eq!(chartreuse.to_hsl(), hsl(90, 100, 50));
-assert_eq!(chartreuse.to_hsla(), hsl(90, 100, 50, 1.0));
+assert_eq!(chartreuse.to_hsla(), hsla(90, 100, 50, 1.0));
 assert_eq!(chartreuse.to_rgba(), rgba(127, 255, 0, 1.0));
 ```
 
 Manipulate single colors to create new color model representations:
 ```rust
-use css_colors::{Color, hsl};
+use css_colors::{Color, hsl, percent};
 
 let chartreuse = hsl(90, 100, 50);
 
-assert_eq!(chartreuse.darken(percent(20), hsl(9, 100, 30));
-assert_eq!(chartreuse.desaturate(percent(20), hsl(9, 80, 50));
+assert_eq!(chartreuse.darken(percent(20)), hsl(9, 100, 30));
+assert_eq!(chartreuse.desaturate(percent(20)), hsl(9, 80, 50));
 assert_eq!(chartreuse.greyscale(), hsl(90, 0, 50));
 ```
 
 Manipulate multiple colors to create new color model representations:
 ```rust
-use css_colors::{Color, hsl, hsla, rgb, rgba};
+use css_colors::{Color, rgb, rgba, hsl, hsla, percent};
 
 let chartreuse = hsl(90, 100, 50);
 let red = rgba(100, 0, 0, 1.0);
@@ -112,8 +112,9 @@ The following links may be helpful while using this crate.
 ### Linting + plugins
 
 Please use the below plugins to ensure code consistency when contributing to this crate.
-* [RLS-based linting for VSCode](https://github.com/rust-lang-nursery/rls-vscode)
-* [CodeLLDB for debugging](https://github.com/vadimcn/vscode-lldb)
+* [Rustfmt](https://github.com/rust-lang-nursery/rustfmt) for formatting code style
+* [RLS-vscode](https://github.com/rust-lang-nursery/rls-vscode) for RLS-based linting for VSCode
+* [CodeLLDB](https://github.com/vadimcn/vscode-lldb) for debugging
 
 ### Building + testing
 

@@ -3,10 +3,10 @@ name = "css-colors"
 version = "1.0.0"
 authors = ["vaidehijoshi <vaidehi.sj@gmail.com>", "chancancode <godfreykfc@gmail.com>"]
 
-description = "A Rust parser and converter to transform CSS colors."
+description = "A Rust converter to transform CSS colors."
 repository = "https://github.com/vaidehijoshi/css-colors"
 homepage = "https://github.com/vaidehijoshi/css-colors"
-keywords = ["parser", "color", "colors", "colour", "css", "css3", "converter"]
+keywords = ["color", "colors", "colour", "css", "css3", "converter"]
 license = "ISC"
 
 [dependencies]
