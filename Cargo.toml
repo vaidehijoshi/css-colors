@@ -7,6 +7,7 @@ description = "A Rust converter to transform CSS colors."
 repository = "https://github.com/vaidehijoshi/css-colors"
 homepage = "https://github.com/vaidehijoshi/css-colors"
 keywords = ["color", "colors", "colour", "css", "converter"]
+readme = "README.md"
 license = "ISC"
 
 [dependencies]
