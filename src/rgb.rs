@@ -124,12 +124,12 @@ impl Color for RGB {
         self.to_rgba().darken(amount).to_rgb()
     }
 
-    fn fadein(self, _amount: Ratio) -> Self {
-        self
+    fn fadein(self, amount: Ratio) -> RGBA {
+        self.to_rgba().fadein(amount)
     }
 
-    fn fadeout(self, _amount: Ratio) -> Self {
-        self
+    fn fadeout(self, amount: Ratio) -> RGBA {
+        self.to_rgba().fadeout(amount)
     }
 
     fn fade(self, amount: Ratio) -> RGBA {

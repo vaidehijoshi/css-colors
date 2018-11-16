@@ -152,7 +152,7 @@ pub trait Color {
     fn darken(self, amount: Ratio) -> Self;
 
     /// Decreases the transparency (or increase the opacity) of `self`, making it more opaque.
-    /// Has no effect on opaque (non-alpha) colors.
+    /// For opqaue colors, converts into the alpha equivalent of `self`, and then increases the opacity.
     /// For more, see Less' [Color Operations](http://lesscss.org/functions/#color-operations-fadein).
     ///
     /// # Examples
@@ -163,12 +163,12 @@ pub trait Color {
     /// let cornflower_blue = rgb(100, 149, 237);
     ///
     /// assert_eq!(tomato.fadein(percent(25)), rgba(255, 99, 71, 0.5));
-    /// assert_eq!(cornflower_blue.fadein(percent(50)), rgb(100, 149, 237));
+    /// assert_eq!(cornflower_blue.fadein(percent(75)), rgba(100, 149, 237, 1.0));
     /// ```
-    fn fadein(self, amount: Ratio) -> Self;
+    fn fadein(self, amount: Ratio) -> Self::Alpha;
 
     /// Increases the transparency (or decrease the opacity) of `self`, making it less opaque.
-    /// Has no effect on opaque (non-alpha) colors.
+    /// For opqaue colors, converts into the alpha equivalent of `self`, and then decreases the opacity.
     /// For more, see Less' [Color Operations](http://lesscss.org/functions/#color-operations-fadeout).
     ///
     /// # Examples
@@ -179,11 +179,11 @@ pub trait Color {
     /// let cornflower_blue = rgb(100, 149, 237);
     ///
     /// assert_eq!(tomato.fadeout(percent(25)), rgba(255, 99, 71, 0.25));
-    /// assert_eq!(cornflower_blue.fadeout(percent(50)), rgb(100, 149, 237));
+    /// assert_eq!(cornflower_blue.fadeout(percent(75)), rgba(100, 149, 237, 0.25));
     /// ```
-    fn fadeout(self, amount: Ratio) -> Self;
+    fn fadeout(self, amount: Ratio) -> Self::Alpha;
 
-    /// Sets the absolute opacity of `self`.
+    /// Sets the absolute opacity of `self`, and returns the alpha equivalent.
     /// Can be applied to colors whether they already have an opacity value or not.
     /// For more, see Less' [Color Operations](http://lesscss.org/functions/#color-operations-fade).
     ///
@@ -633,12 +633,12 @@ mod css_color_tests {
 
     #[test]
     fn can_fadein() {
-        assert_approximately_eq!(hsl(9, 35, 50).fadein(percent(25)), hsl(9, 35, 50));
+        assert_approximately_eq!(hsl(9, 35, 50).fadein(percent(25)), hsla(9, 35, 50, 1.0));
         assert_approximately_eq!(
             hsla(9, 35, 50, 0.5).fadein(percent(25)),
             hsla(9, 35, 50, 0.75)
         );
-        assert_approximately_eq!(rgb(172, 96, 83).fadein(percent(25)), rgb(172, 96, 83));
+        assert_approximately_eq!(rgb(172, 96, 83).fadein(percent(25)), rgba(172, 96, 83, 1.0));
         assert_approximately_eq!(
             rgba(172, 96, 83, 0.50).fadein(percent(25)),
             rgba(172, 96, 83, 0.75)
@@ -647,8 +647,11 @@ mod css_color_tests {
 
     #[test]
     fn can_fadeout() {
-        assert_approximately_eq!(hsl(9, 35, 50).fadeout(percent(25)), hsl(9, 35, 50));
-        assert_approximately_eq!(rgb(172, 96, 83).fadeout(percent(25)), rgb(172, 96, 83));
+        assert_approximately_eq!(hsl(9, 35, 50).fadeout(percent(25)), hsla(9, 35, 50, 0.75));
+        assert_approximately_eq!(
+            rgb(172, 96, 83).fadeout(percent(25)),
+            rgba(172, 96, 83, 0.75)
+        );
         assert_approximately_eq!(
             hsla(9, 35, 50, 0.60).fadeout(percent(25)),
             hsla(9, 35, 50, 0.35)

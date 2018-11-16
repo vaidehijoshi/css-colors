@@ -127,12 +127,12 @@ impl Color for HSL {
         self.to_hsla().darken(amount).to_hsl()
     }
 
-    fn fadein(self, _amount: Ratio) -> Self {
-        self
+    fn fadein(self, amount: Ratio) -> Self::Alpha {
+        self.to_hsla().fadein(amount)
     }
 
-    fn fadeout(self, _amount: Ratio) -> Self {
-        self
+    fn fadeout(self, amount: Ratio) -> Self::Alpha {
+        self.to_hsla().fadeout(amount)
     }
 
     fn fade(self, amount: Ratio) -> Self::Alpha {
