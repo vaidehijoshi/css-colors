@@ -50,10 +50,10 @@ Represent colors as a valid CSS string:
 use css_colors::{Color, rgb, hsla};
 
 let salmon = rgb(250, 128, 114);
-let chartreuse = hsla(90, 100, 50, 1.0)
+let chartreuse = hsla(90, 100, 50, 1.0);
 
 assert_eq!(salmon.to_css(), "rgb(250, 128, 114)");
-assert_eq!(chartreuse.to_css(), "hsla(90, 100%, 50%, 1.0)");
+assert_eq!(chartreuse.to_css(), "hsla(90, 100%, 50%, 1.00)");
 ```
 
 Convert between different color model representations:
@@ -73,8 +73,8 @@ use css_colors::{Color, hsl, percent};
 
 let chartreuse = hsl(90, 100, 50);
 
-assert_eq!(chartreuse.darken(percent(20)), hsl(9, 100, 30));
-assert_eq!(chartreuse.desaturate(percent(20)), hsl(9, 80, 50));
+assert_eq!(chartreuse.darken(percent(20)), hsl(90, 100, 30));
+assert_eq!(chartreuse.desaturate(percent(20)), hsl(90, 80, 50));
 assert_eq!(chartreuse.greyscale(), hsl(90, 0, 50));
 ```
 
@@ -85,9 +85,12 @@ use css_colors::{Color, rgb, rgba, hsl, hsla, percent};
 let chartreuse = hsl(90, 100, 50);
 let red = rgba(100, 0, 0, 1.0);
 
-assert_approximately_eq!(chartreuse.mix(red, percent(50)), hsla(67, 98, 25, 1.0))
-assert_approximately_eq!(chartreuse.tint(percent(50)), hsl(90, 100, 75));
-assert_approximately_eq!(chartreuse.shade(percent(50)), hsl(90, 98, 25));
+assert_eq!(
+    chartreuse.mix(red, percent(50)).to_css(),
+    "hsla(67, 98%, 25%, 1.00)"
+);
+assert_eq!(chartreuse.tint(percent(50)).to_css(), "hsl(90, 100%, 75%)");
+assert_eq!(chartreuse.shade(percent(50)).to_css(), "hsl(90, 98%, 25%)");
 ```
 
 Check out the [documentation](https://docs.rs/css-colors) to learn more about what color operations are available to use!
