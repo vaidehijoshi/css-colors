@@ -1,6 +1,6 @@
 [package]
 name = "css-colors"
-version = "1.0.0"
+version = "1.0.1"
 authors = ["vaidehijoshi <vaidehi.sj@gmail.com>", "chancancode <godfreykfc@gmail.com>"]
 
 description = "A Rust converter to transform CSS colors."
