@@ -129,4 +129,4 @@ We run our test suite against the Rust stable, beta, and nightly versions on Tra
 
 ## License
 
-This project is licensed under the [ISC License](LICENSE.md).
+This project is licensed under the [ISC License](LICENSE).
